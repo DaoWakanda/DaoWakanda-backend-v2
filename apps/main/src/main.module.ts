@@ -13,6 +13,7 @@ import { ProposalController } from './controllers/proposal.controller';
     AuthModule,
     AdminModule,
     ProposalModule,
+    //
   ],
   controllers: [AuthController, ProposalController],
   providers: [],
