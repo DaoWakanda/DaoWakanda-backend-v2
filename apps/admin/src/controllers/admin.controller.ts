@@ -7,6 +7,6 @@ export class AdminController {
 
   @Get('welcome')
   greetings() {
-    return this.adminService.greetings();
+    return 'Greetings';
   }
 }
