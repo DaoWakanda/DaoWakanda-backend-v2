@@ -8,6 +8,8 @@ import { ProposalModule } from 'modules/proposal/proposal.module';
 import { ProposalController } from './controllers/proposal.controller';
 import { UserController } from './controllers/user.controller';
 import { UserModule } from 'modules/user/user.module';
+import { TriviaController } from './controllers/trivia.controller';
+import { TriviaModule } from 'modules/trivia/trivia.module';
 
 @Module({
   imports: [
@@ -16,9 +18,15 @@ import { UserModule } from 'modules/user/user.module';
     AdminModule,
     ProposalModule,
     UserModule,
+    TriviaModule,
     //
   ],
-  controllers: [AuthController, ProposalController, UserController],
+  controllers: [
+    AuthController,
+    ProposalController,
+    UserController,
+    TriviaController,
+  ],
   providers: [],
 })
 export class MainModule {}
