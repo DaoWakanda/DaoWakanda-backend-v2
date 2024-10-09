@@ -34,6 +34,12 @@ export class Trivia extends Base {
   @ApiProperty({ description: 'Description of the trivia' })
   @Prop()
   description: string;
+
+  @ApiProperty({
+    description: 'Skill involved in the trivia',
+  })
+  @Prop({ required: true })
+  skill: string;
 }
 
 export const TriviaSchema = SchemaFactory.createForClass(Trivia);

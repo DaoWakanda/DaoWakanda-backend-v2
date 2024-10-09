@@ -35,6 +35,11 @@ export class CreateTriviaDto {
   @IsNotEmpty()
   @IsString()
   description: string;
+
+  @ApiProperty({ description: 'Skill involved in the trivia' })
+  @IsNotEmpty()
+  @IsString()
+  skill: string;
 }
 
 export class UpdateTriviaDto extends PartialType(CreateTriviaDto) {
@@ -58,6 +63,9 @@ export class UpdateTriviaDto extends PartialType(CreateTriviaDto) {
 
   @ApiPropertyOptional({ description: 'Description of the trivia' })
   description?: string;
+
+  @ApiPropertyOptional({ description: 'Skill involved in the trivia' })
+  skill?: string;
 }
 
 export class TriviaResponseDto {
@@ -84,6 +92,9 @@ export class TriviaResponseDto {
 
   @ApiProperty({ description: 'Description of the trivia' })
   description: string;
+
+  @ApiProperty({ description: 'Skill involved the trivia' })
+  skill: string;
 
   @ApiProperty({ description: 'Date of the trivia creation' })
   date: string;

@@ -18,6 +18,7 @@ export const toTriviaResponse = (
     difficultyLvl: trivia.difficultyLvl,
     prize: trivia.prize,
     maxWinners: trivia.maxWinners,
+    skill: trivia.skill,
     description: trivia.description || '',
   };
 };
