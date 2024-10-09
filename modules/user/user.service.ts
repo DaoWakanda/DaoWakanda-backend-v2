@@ -61,7 +61,7 @@ export class UserService {
 
     if (!user)
       throw new NotFoundException(
-        'No user found wtih that wallet address exists',
+        'No user found with that wallet address exists',
       );
 
     const updatedUser = await this.userRepo.findByIdAndUpdate(
