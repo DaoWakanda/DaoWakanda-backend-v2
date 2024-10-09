@@ -1,16 +1,20 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import {
-  CreateTriviaDto,
-  TriviaResponseDto,
-  UpdateTriviaDto,
-} from 'libs/dto/trivia.dto';
+  PageMetaDto,
+  PageOptionsDto,
+  PaginationResponseDto,
+} from 'libs/dto/page.dto';
+import { CreateTriviaDto, UpdateTriviaDto } from 'libs/dto/trivia.dto';
+import { Order } from 'libs/enums/order.enum';
 import { toTriviaResponse } from 'libs/mapper/trivia.mapper';
 import { Trivia } from 'libs/schema/trivia.schema';
+import { createPageOptionFallBack } from 'libs/utils/createPageOptionFallBack';
 import { Model } from 'mongoose';
 
 @Injectable()
@@ -38,12 +42,35 @@ export class TriviaService {
     };
   }
 
-  async getAllTrivias(): Promise<TriviaResponseDto[]> {
-    const allTrivias = await this.triviaRepo.find().exec();
+  async getAllTrivias(options: PageOptionsDto): Promise<PaginationResponseDto> {
+    const pageOptionsDtoFallBack = createPageOptionFallBack(options);
+    const { order, skip, numOfItemsPerPage } = pageOptionsDtoFallBack;
+
+    if (order !== Order.ASC && order !== Order.DESC) {
+      throw new BadRequestException('Order must be either "asc" or "desc"');
+    }
+
+    const [allTrivias, itemCount] = await Promise.all([
+      this.triviaRepo
+        .find()
+        .sort({ createdAt: order === Order.ASC ? 1 : -1 })
+        .skip(skip)
+        .limit(numOfItemsPerPage)
+        .exec(),
+      this.triviaRepo.countDocuments().exec(),
+    ]);
 
     const triviaResponse = allTrivias.map((trivia) => toTriviaResponse(trivia));
 
-    return triviaResponse;
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: pageOptionsDtoFallBack,
+    });
+
+    return {
+      data: triviaResponse,
+      pagination: pageMetaDto,
+    };
   }
 
   async getTriviaById(id: string) {

@@ -1,13 +1,17 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
   Param,
   Patch,
   Post,
+  Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiBody, ApiOperation } from '@nestjs/swagger';
+import { PageOptionsDto, PaginationResponseDto } from 'libs/dto/page.dto';
 import {
   CreateTriviaDto,
   TriviaResponseDto,
@@ -17,6 +21,7 @@ import { TriviaService } from 'modules/trivia/trivia.service';
 
 @ApiTags('Trivia Manager')
 @Controller('trivia')
+@UseInterceptors(ClassSerializerInterceptor)
 export class TriviaController {
   constructor(private readonly triviaService: TriviaService) {}
 
@@ -38,10 +43,10 @@ export class TriviaController {
   @ApiResponse({
     status: 200,
     description: 'List of all trivias.',
-    type: [TriviaResponseDto],
+    type: [PaginationResponseDto],
   })
-  async getAllTrivias() {
-    return this.triviaService.getAllTrivias();
+  async getAllTrivias(@Query() options: PageOptionsDto) {
+    return this.triviaService.getAllTrivias(options);
   }
 
   @ApiOperation({ summary: 'Get current Trivia details' })
