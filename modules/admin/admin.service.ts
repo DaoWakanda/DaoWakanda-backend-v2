@@ -14,7 +14,7 @@ export class AdminService {
   constructor(
     @InjectModel(Admin.name) private adminModel: Model<AdminDocument>,
 
-    private readonly bcryptService: BcryptService
+    private readonly bcryptService: BcryptService,
   ) {}
 
   async createAdmin(email: string, password: string) {
@@ -58,7 +58,7 @@ export class AdminService {
 
     if (!admin)
       throw new NotFoundException(
-        'No admin with the supplied email address exists.'
+        'No admin with the supplied email address exists.',
       );
 
     return await this.adminModel.deleteOne({ email }).exec();

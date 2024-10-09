@@ -5,15 +5,12 @@ import {
   Get,
   Param,
   Post,
-  Put,
-  Request,
   UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
-  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -39,7 +36,7 @@ export class ProposalController {
 
   @ApiOperation({ summary: 'Get Whitelisted ASA ID' })
   @ApiBearerAuth('Bearer')
-  @ApiResponse({ type: Array<String> })
+  @ApiResponse({ type: [String] })
   @UseGuards(AdminJwtAuthGuard)
   @Get('asset-whitelist')
   getWhitelistedAssets() {
@@ -110,7 +107,7 @@ export class ProposalController {
   @Post(':appId/bootstrap')
   bootstrapProposal(
     @Body() dto: BootstrapProposalDto,
-    @Param('appId') appId: string
+    @Param('appId') appId: string,
   ) {
     return this.proposalService.bootstrapProposal(appId, dto);
   }
