@@ -8,7 +8,7 @@ import { CreateAdminDto, DeleteAdminDto } from 'libs/dto/auth.dto';
 export class AuthService {
   constructor(
     private adminService: AdminService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
   ) {}
 
   async validateAdmin(email: string, password: string) {
