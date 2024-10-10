@@ -11,7 +11,6 @@ import {
   IsNumber,
 } from 'class-validator';
 import { Order } from 'libs/enums/order.enum';
-import { TriviaResponseDto } from './trivia.dto';
 
 export class PageOptionsDto {
   @ApiProperty({ enum: Order, default: Order.ASC })
@@ -82,11 +81,20 @@ export class PageMetaDto {
   }
 }
 
-export class PaginationResponseDto {
-  @ApiProperty({ type: [TriviaResponseDto] })
-  @Type(() => TriviaResponseDto)
+// export class PaginationResponseDto {
+//   @ApiProperty({ type: [TriviaResponseDto] })
+//   @Type(() => TriviaResponseDto)
+//   @IsArray()
+//   data: TriviaResponseDto[];
+
+//   @ApiProperty({ type: () => PageMetaDto })
+//   readonly pagination: PageMetaDto;
+// }
+
+export class PaginationResponseDto<T> {
   @IsArray()
-  data: TriviaResponseDto[];
+  @ApiProperty({ isArray: true })
+  readonly data: T[];
 
   @ApiProperty({ type: () => PageMetaDto })
   readonly pagination: PageMetaDto;

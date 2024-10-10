@@ -1,6 +1,7 @@
-import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsNumber, IsEnum } from 'class-validator';
 import { DIFFICULTY_LEVEL } from 'libs/enums/difficulty.enum';
+import { REVIEW_STATUS, TRIVIA_STATUS } from 'libs/enums/status.enum';
 
 export class CreateTriviaDto {
   @ApiProperty({ description: 'Title of the trivia' })
@@ -19,7 +20,7 @@ export class CreateTriviaDto {
   })
   @IsNotEmpty()
   @IsEnum({ enum: DIFFICULTY_LEVEL })
-  difficultyLvl: DIFFICULTY_LEVEL;
+  difficulty: DIFFICULTY_LEVEL;
 
   @ApiProperty({ description: 'Prize amount for the trivia winner' })
   @IsNotEmpty()
@@ -42,7 +43,7 @@ export class CreateTriviaDto {
   skill: string;
 }
 
-export class UpdateTriviaDto extends PartialType(CreateTriviaDto) {
+export class UpdateTriviaDto {
   @ApiPropertyOptional({ description: 'Title of the trivia' })
   title?: string;
 
@@ -53,12 +54,12 @@ export class UpdateTriviaDto extends PartialType(CreateTriviaDto) {
     description: 'Difficulty level of the trivia',
     enum: DIFFICULTY_LEVEL,
   })
-  difficultyLvl?: DIFFICULTY_LEVEL;
+  difficulty?: DIFFICULTY_LEVEL;
 
   @ApiPropertyOptional({ description: 'Prize amount for the trivia winner' })
   prize?: number;
 
-  @ApiPropertyOptional({ description: 'Maximum number of winners' })
+  @ApiPropertyOptional({ description: 'Maximum number of winners allowed' })
   maxWinners?: number;
 
   @ApiPropertyOptional({ description: 'Description of the trivia' })
@@ -82,13 +83,16 @@ export class TriviaResponseDto {
     description: 'Difficulty level of the trivia',
     enum: DIFFICULTY_LEVEL,
   })
-  difficultyLvl: DIFFICULTY_LEVEL;
+  difficulty: DIFFICULTY_LEVEL;
 
   @ApiProperty({ description: 'Prize amount for the trivia winner' })
   prize: number;
 
-  @ApiProperty({ description: 'Maximum number of winners' })
+  @ApiProperty({ description: 'Maximum number of winners allowed' })
   maxWinners: number;
+
+  @ApiProperty({ description: 'Number of winners' })
+  winnersCount: number;
 
   @ApiProperty({ description: 'Description of the trivia' })
   description: string;
@@ -97,5 +101,34 @@ export class TriviaResponseDto {
   skill: string;
 
   @ApiProperty({ description: 'Date of the trivia creation' })
-  date: string;
+  createdAt: Date;
+
+  @ApiProperty({
+    description: 'Status of the trivia',
+    enum: TRIVIA_STATUS,
+  })
+  status: TRIVIA_STATUS;
+}
+
+export class AnswerDto {
+  @ApiProperty({ description: 'Github link submitted by the user' })
+  @IsNotEmpty()
+  @IsString()
+  githubRepoLink: string;
+}
+
+export class ReviewStatusDto {
+  @ApiProperty({ enum: REVIEW_STATUS, default: REVIEW_STATUS.FAILED })
+  @IsEnum(REVIEW_STATUS)
+  status: REVIEW_STATUS = REVIEW_STATUS.FAILED;
+}
+
+export class LeaderboardResponseDto {
+  @ApiProperty({ description: 'name of the winner' })
+  @IsString()
+  name: string;
+
+  @ApiProperty({ description: 'total algos of the winner' })
+  @IsString()
+  totalAlgos: number;
 }

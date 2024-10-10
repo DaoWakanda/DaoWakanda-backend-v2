@@ -17,6 +17,10 @@ export class CreateUserDto {
 
   @ApiProperty()
   @IsString()
+  image: string;
+
+  @ApiProperty()
+  @IsString()
   country: string;
 
   @ApiProperty()
@@ -42,6 +46,11 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   lastName?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  image?: string;
 
   @ApiProperty()
   @IsString()
