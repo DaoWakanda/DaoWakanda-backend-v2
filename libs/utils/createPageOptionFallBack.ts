@@ -16,6 +16,7 @@ export const createPageOptionFallBack = (
     page?: number;
     numOfItemsPerPage?: number;
     filterBy?: DIFFICULTY_LEVEL;
+    searchTerm?: string;
   },
 ) => {
   const order = pageOptionsDto.order || defaults?.order || Order.DESC;
@@ -24,6 +25,7 @@ export const createPageOptionFallBack = (
     pageOptionsDto.numOfItemsPerPage || defaults?.numOfItemsPerPage || 10;
   const skip = (page - 1) * numOfItemsPerPage;
   const filterBy = pageOptionsDto.filterBy || defaults?.filterBy;
+  const searchTerm = pageOptionsDto.searchTerm || defaults?.searchTerm;
 
   const pageOptionsDtoFallBack: PageOptionsDto = {
     order,
@@ -31,6 +33,7 @@ export const createPageOptionFallBack = (
     numOfItemsPerPage,
     skip,
     filterBy,
+    searchTerm,
   };
 
   return pageOptionsDtoFallBack;
