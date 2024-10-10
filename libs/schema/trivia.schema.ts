@@ -3,6 +3,7 @@ import { Base } from './base.schema';
 import { ApiProperty } from '@nestjs/swagger';
 import { HydratedDocument } from 'mongoose';
 import { DIFFICULTY_LEVEL } from 'libs/enums/difficulty.enum';
+import { TRIVIA_STATUS } from 'libs/enums/status.enum';
 
 export type TriviaDocument = HydratedDocument<Trivia>;
 
@@ -21,15 +22,19 @@ export class Trivia extends Base {
     enum: DIFFICULTY_LEVEL,
   })
   @Prop({ required: true, type: String, enum: DIFFICULTY_LEVEL })
-  difficultyLvl: DIFFICULTY_LEVEL;
+  difficulty: DIFFICULTY_LEVEL;
 
   @ApiProperty({ description: 'Prize amount for the trivia winner' })
   @Prop({ required: true })
   prize: number;
 
-  @ApiProperty({ description: 'Maximum number of winners' })
+  @ApiProperty({ description: 'Maximum number of allowed winners' })
   @Prop({ required: true })
   maxWinners: number;
+
+  @ApiProperty({ description: 'number of winners' })
+  @Prop({ default: 0 })
+  winners: number;
 
   @ApiProperty({ description: 'Description of the trivia' })
   @Prop()
@@ -38,8 +43,12 @@ export class Trivia extends Base {
   @ApiProperty({
     description: 'Skill involved in the trivia',
   })
-  @Prop({ required: true })
+  @Prop({})
   skill: string;
+
+  @ApiProperty({ description: 'Status of the trivia' })
+  @Prop({ required: true, type: String, default: TRIVIA_STATUS.ONGOING })
+  status: TRIVIA_STATUS;
 }
 
 export const TriviaSchema = SchemaFactory.createForClass(Trivia);

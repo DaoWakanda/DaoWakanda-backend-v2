@@ -38,6 +38,10 @@ export class User extends Base {
   @ApiProperty()
   @Prop({ required: true })
   walletAddress: string;
+
+  @ApiProperty()
+  @Prop({ default: 0 })
+  awardedAlgos: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
