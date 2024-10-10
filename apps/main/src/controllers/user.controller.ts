@@ -8,6 +8,7 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import { CreateUserDto, UpdateUserDto } from 'libs/dto';
+import { UploadImageDto } from 'libs/dto/upload-image.dto';
 import { UserService } from 'modules/user/user.service';
 
 @ApiTags('User Manager')
@@ -73,5 +74,21 @@ export class UserController {
     @Body() userDto: UpdateUserDto,
   ) {
     return this.userService.updateUser(walletAddress, userDto);
+  }
+
+  @ApiOperation({ summary: 'Upload image' })
+  @ApiResponse({
+    status: 200,
+    description: 'Image uploaded successfully.',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+      },
+    },
+  })
+  @Post('upload-image')
+  async uploadProfileImage(@Body() profileImage: UploadImageDto) {
+    return this.userService.uploadProfileImage(profileImage);
   }
 }
