@@ -1,4 +1,5 @@
 import { PageOptionsDto } from 'libs/dto/page.dto';
+import { DIFFICULTY_LEVEL } from 'libs/enums/difficulty.enum';
 import { Order } from 'libs/enums/order.enum';
 
 /**
@@ -14,7 +15,7 @@ export const createPageOptionFallBack = (
     order?: Order;
     page?: number;
     numOfItemsPerPage?: number;
-    orderBy?: string;
+    filterBy?: DIFFICULTY_LEVEL;
   },
 ) => {
   const order = pageOptionsDto.order || defaults?.order || Order.DESC;
@@ -22,14 +23,14 @@ export const createPageOptionFallBack = (
   const numOfItemsPerPage =
     pageOptionsDto.numOfItemsPerPage || defaults?.numOfItemsPerPage || 10;
   const skip = (page - 1) * numOfItemsPerPage;
-  const orderBy = pageOptionsDto.orderBy || defaults?.orderBy || 'createdAt';
+  const filterBy = pageOptionsDto.filterBy || defaults?.filterBy;
 
   const pageOptionsDtoFallBack: PageOptionsDto = {
     order,
     page,
     numOfItemsPerPage,
     skip,
-    orderBy,
+    filterBy,
   };
 
   return pageOptionsDtoFallBack;
