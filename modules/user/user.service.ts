@@ -1,16 +1,23 @@
 import {
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateUserDto, UpdateUserDto } from 'libs/dto';
+import { UploadImageDto } from 'libs/dto/upload-image.dto';
+import { toUserResponse } from 'libs/mapper/user.mapper';
 import { User } from 'libs/schema/user.schema';
+import { FileUploadService } from 'modules/file-upload/file-upload.service';
 import { Model } from 'mongoose';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private readonly userRepo: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private readonly userRepo: Model<User>,
+    private readonly fileUploadService: FileUploadService,
+  ) {}
 
   async createUser(data: CreateUserDto) {
     const existingUser = await this.findUserByWalletAddress(data.walletAddress);
@@ -26,16 +33,7 @@ export class UserService {
 
     return {
       message: 'User created successfully',
-      createdUser: {
-        id: savedUser._id.toString(),
-        firstName: savedUser.firstName,
-        lastName: savedUser.lastName,
-        email: savedUser.email,
-        image: savedUser.image,
-        country: savedUser.country,
-        stateOfResidence: savedUser.stateOfResidence,
-        walletAddress: savedUser.walletAddress,
-      },
+      createdUser: toUserResponse(savedUser),
     };
   }
 
@@ -47,13 +45,25 @@ export class UserService {
 
     if (user) {
       return {
-        ...user,
         id: user._id.toString(),
+        ...user,
         _id: undefined,
       };
     }
 
     return null;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await this.userRepo.find().sort({ algos: -1 }).exec();
+  }
+
+  async findUserById(userId: string) {
+    const user = await this.userRepo.findById(userId).exec();
+
+    if (!user) throw new NotFoundException('User not found');
+
+    return user._id;
   }
 
   async updateUser(address: string, data: UpdateUserDto) {
@@ -64,14 +74,16 @@ export class UserService {
         'No user found with that wallet address exists',
       );
 
-    const updatedUser = await this.userRepo.findByIdAndUpdate(
-      user.id,
-      {
-        ...data,
-        updatedAt: new Date(),
-      },
-      { new: true },
-    );
+    const updatedUser = await this.userRepo
+      .findByIdAndUpdate(
+        user.id,
+        {
+          ...data,
+          updatedAt: new Date(),
+        },
+        { new: true },
+      )
+      .exec();
 
     if (!updatedUser) {
       throw new NotFoundException('Unable to update the user');
@@ -79,16 +91,70 @@ export class UserService {
 
     return {
       message: 'User updated successfully',
+      updatedUser: toUserResponse(updatedUser),
+    };
+  }
+
+  async awardAlgos(userId: string, algos: number) {
+    const updatedUser = await this.userRepo
+      .findByIdAndUpdate(
+        userId,
+        {
+          awardedAlgos: algos,
+        },
+        { new: true },
+      )
+      .exec();
+
+    if (!updatedUser) {
+      throw new NotFoundException('Unable to update the user');
+    }
+
+    return {
+      message: 'User updated successfully with new algos',
       updatedUser: {
         id: updatedUser._id.toString(),
-        firstName: updatedUser.firstName,
-        lastName: updatedUser.lastName,
-        email: updatedUser.email,
-        image: updatedUser.image,
-        country: updatedUser.country,
-        stateOfResidence: updatedUser.stateOfResidence,
-        walletAddress: updatedUser.walletAddress,
+        awardedAlgos: updatedUser.awardedAlgos,
       },
     };
+  }
+
+  async uploadProfileImage(data: UploadImageDto) {
+    const { base64 } = data;
+
+    try {
+      const imageUrl = await this.imageUpload(base64);
+
+      if (!imageUrl) {
+        throw new InternalServerErrorException('Image upload failed.');
+      }
+
+      return {
+        imageUrl: imageUrl,
+      };
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+      throw new InternalServerErrorException('Failed to upload profile image.');
+    }
+  }
+
+  async imageUpload(base64: string): Promise<string> {
+    try {
+      const imageData = await this.fileUploadService.uploadProfilePhoto(
+        '',
+        base64,
+      );
+
+      if (!imageData || !imageData.imageUrl) {
+        throw new Error('Invalid image data received.');
+      }
+
+      return imageData.imageUrl;
+    } catch (error) {
+      console.error('Error during image upload:', error);
+      throw new InternalServerErrorException(
+        'Failed to upload image to Cloudinary.',
+      );
+    }
   }
 }
