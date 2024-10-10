@@ -10,6 +10,8 @@ import { UserController } from './controllers/user.controller';
 import { UserModule } from 'modules/user/user.module';
 import { TriviaController } from './controllers/trivia.controller';
 import { TriviaModule } from 'modules/trivia/trivia.module';
+import { UserTriviaController } from './controllers/user-trivia-controller';
+import { FileUploadModule } from 'modules/file-upload/file-upload.module';
 
 @Module({
   imports: [
@@ -19,6 +21,7 @@ import { TriviaModule } from 'modules/trivia/trivia.module';
     ProposalModule,
     UserModule,
     TriviaModule,
+    FileUploadModule,
     //
   ],
   controllers: [
@@ -26,6 +29,7 @@ import { TriviaModule } from 'modules/trivia/trivia.module';
     ProposalController,
     UserController,
     TriviaController,
+    UserTriviaController,
   ],
   providers: [],
 })
