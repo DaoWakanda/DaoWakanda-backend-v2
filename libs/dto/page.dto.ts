@@ -3,13 +3,14 @@ import { Type } from 'class-transformer';
 import {
   IsEnum,
   IsOptional,
-  IsString,
   IsInt,
   Min,
   Max,
   IsArray,
   IsNumber,
+  IsString,
 } from 'class-validator';
+import { DIFFICULTY_LEVEL } from 'libs/enums/difficulty.enum';
 import { Order } from 'libs/enums/order.enum';
 
 export class PageOptionsDto {
@@ -18,10 +19,17 @@ export class PageOptionsDto {
   @IsOptional()
   readonly order: Order = Order.ASC;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    enum: DIFFICULTY_LEVEL,
+  })
+  @IsEnum(DIFFICULTY_LEVEL)
+  @IsOptional()
+  readonly filterBy?: DIFFICULTY_LEVEL;
+
+  @ApiPropertyOptional({})
   @IsString()
   @IsOptional()
-  readonly orderBy?: string;
+  readonly searchTerm?: string;
 
   @ApiPropertyOptional({
     minimum: 1,

@@ -72,20 +72,31 @@ export class TriviaService {
     options: PageOptionsDto,
   ): Promise<PaginationResponseDto<TriviaResponseDto>> {
     const pageOptionsDtoFallBack = createPageOptionFallBack(options);
-    const { order, skip, numOfItemsPerPage } = pageOptionsDtoFallBack;
+    const { order, skip, numOfItemsPerPage, filterBy, searchTerm } =
+      pageOptionsDtoFallBack;
 
     if (order !== Order.ASC && order !== Order.DESC) {
       throw new BadRequestException('Order must be either "asc" or "desc"');
     }
 
+    const query: any = {};
+
+    if (searchTerm) {
+      query.title = { $regex: searchTerm, $options: 'i' };
+    }
+
+    if (filterBy) {
+      query.difficulty = filterBy;
+    }
+
     const [allTrivias, itemCount] = await Promise.all([
       this.triviaRepo
-        .find()
+        .find(query)
         .sort({ createdAt: order === Order.ASC ? 1 : -1 })
         .skip(skip)
         .limit(numOfItemsPerPage)
         .exec(),
-      this.triviaRepo.countDocuments().exec(),
+      this.triviaRepo.countDocuments(query).exec(),
     ]);
 
     const triviaResponse = await Promise.all(
