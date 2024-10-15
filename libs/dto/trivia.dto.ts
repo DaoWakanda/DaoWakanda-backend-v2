@@ -79,6 +79,9 @@ export class TriviaResponseDto {
   @ApiProperty({ description: 'Duration of the trivia in seconds' })
   duration: string;
 
+  @ApiProperty({ description: 'TimeStamp of when the trivia ends' })
+  endTimeStamp: number;
+
   @ApiProperty({
     description: 'Difficulty level of the trivia',
     enum: DIFFICULTY_LEVEL,

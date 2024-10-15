@@ -12,6 +12,7 @@ export const toTriviaResponse = (
     title: trivia.title,
     duration: parseMinutes(computeTriviaMinutes(trivia.duration.toString())),
     createdAt: trivia.createdAt,
+    endTimeStamp: trivia.endTimeStamp,
     difficulty: trivia.difficulty,
     prize: trivia.prize,
     maxWinners: trivia.maxWinners,
