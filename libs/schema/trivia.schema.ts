@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+
 import { Base } from './base.schema';
 import { ApiProperty } from '@nestjs/swagger';
 import { HydratedDocument } from 'mongoose';
@@ -16,6 +17,10 @@ export class Trivia extends Base {
   @ApiProperty({ description: 'Duration of the trivia in seconds' })
   @Prop({ required: true })
   duration: number;
+
+  @ApiProperty({ description: 'Timestamp for when the trivia ends' })
+  @Prop({})
+  endTimeStamp: number;
 
   @ApiProperty({
     description: 'Difficulty level of the trivia',
@@ -52,3 +57,15 @@ export class Trivia extends Base {
 }
 
 export const TriviaSchema = SchemaFactory.createForClass(Trivia);
+
+TriviaSchema.pre<Trivia>('save', function (next) {
+  if (!this.endTimeStamp) {
+    this.endTimeStamp = Math.floor(
+      new Date(this.createdAt.getTime() + this.duration * 1000).getTime() /
+        1000,
+    );
+  }
+  this.updatedAt = new Date();
+
+  next();
+});
