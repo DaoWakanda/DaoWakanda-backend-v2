@@ -61,8 +61,7 @@ export const TriviaSchema = SchemaFactory.createForClass(Trivia);
 TriviaSchema.pre<Trivia>('save', function (next) {
   if (!this.endTimeStamp) {
     this.endTimeStamp = Math.floor(
-      new Date(this.createdAt.getTime() + this.duration * 1000).getTime() /
-        1000,
+      new Date(this.createdAt).valueOf() + this.duration * 1000,
     );
   }
   this.updatedAt = new Date();
