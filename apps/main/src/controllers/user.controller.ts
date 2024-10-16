@@ -7,7 +7,7 @@ import {
   ApiResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { CreateUserDto, UpdateUserDto } from 'libs/dto';
+import { CreateUserDto, UpdateUserDto, UserResponseDto } from 'libs/dto';
 import { UploadImageDto } from 'libs/dto/upload-image.dto';
 import { UserService } from 'modules/user/user.service';
 
@@ -24,7 +24,7 @@ export class UserController {
       type: 'object',
       properties: {
         message: { type: 'string' },
-        data: { $ref: getSchemaPath(CreateUserDto) },
+        data: { $ref: getSchemaPath(UserResponseDto) }, // Use the reference to the UserResponseDto
       },
     },
   })
@@ -43,7 +43,7 @@ export class UserController {
   @ApiResponse({
     status: 200,
     description: 'User details fetched successfully.',
-    schema: { $ref: getSchemaPath(UpdateUserDto) },
+    schema: { $ref: getSchemaPath(UserResponseDto) },
   })
   @Get(':walletAddress/details')
   getUser(@Param('walletAddress') walletAddress: string) {
@@ -63,7 +63,7 @@ export class UserController {
       type: 'object',
       properties: {
         message: { type: 'string' },
-        data: { $ref: getSchemaPath(CreateUserDto) },
+        data: { $ref: getSchemaPath(UserResponseDto) },
       },
     },
   })

@@ -17,7 +17,7 @@ import {
 } from 'libs/dto/trivia.dto';
 import { TriviaService } from 'modules/trivia/trivia.service';
 
-@ApiTags('User Trivia Manager')
+@ApiTags('User Challenge Manager')
 @Controller('user-trivia')
 @UseInterceptors(ClassSerializerInterceptor)
 export class UserTriviaController {

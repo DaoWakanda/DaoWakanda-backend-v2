@@ -28,7 +28,7 @@ import {
 import { AdminJwtAuthGuard } from 'libs/guards/jwt/admin-jwt-auth.guard';
 import { TriviaService } from 'modules/trivia/trivia.service';
 
-@ApiTags('Admin Trivia Manager')
+@ApiTags('Admin Challenge Manager')
 @Controller('trivia')
 @UseInterceptors(ClassSerializerInterceptor)
 export class TriviaController {
