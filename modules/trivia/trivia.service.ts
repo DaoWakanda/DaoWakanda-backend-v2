@@ -7,6 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { sub } from 'date-fns';
 import {
   PageMetaDto,
   PageOptionsDto,
@@ -16,6 +17,7 @@ import {
   AnswerDto,
   CreateTriviaDto,
   LeaderboardResponseDto,
+  SubmissionResponseDto,
   TriviaResponseDto,
   UpdateTriviaDto,
 } from 'libs/dto/trivia.dto';
@@ -190,7 +192,7 @@ export class TriviaService {
 
     const existingSubmission = await this.submissionRepo
       .findOne({
-        userId,
+        userId: user.id,
         triviaId,
       })
       .exec();
@@ -255,8 +257,9 @@ export class TriviaService {
     }
 
     if (
-      submission.status === SUBMISSION_STATUS.PASSED ||
-      submission.status === SUBMISSION_STATUS.FAILED
+      submission.status === SUBMISSION_STATUS.APPROVED ||
+      submission.status === SUBMISSION_STATUS.REJECTED ||
+      submission.status === SUBMISSION_STATUS.DISBURSED
     ) {
       throw new ConflictException(
         `Submission with ID ${submissionId} has already been reviewed`,
@@ -278,9 +281,9 @@ export class TriviaService {
         { _id: submission._id },
         {
           status:
-            review === REVIEW_STATUS.PASSED
-              ? SUBMISSION_STATUS.PASSED
-              : SUBMISSION_STATUS.FAILED,
+            review === REVIEW_STATUS.APPROVED
+              ? SUBMISSION_STATUS.APPROVED
+              : SUBMISSION_STATUS.REJECTED,
         },
         {
           new: true,
@@ -288,7 +291,7 @@ export class TriviaService {
       )
       .exec();
 
-    if (review === REVIEW_STATUS.PASSED) {
+    if (review === REVIEW_STATUS.APPROVED) {
       await this.awardAlgos(updatedSubmission);
 
       await this.triviaRepo
@@ -314,7 +317,7 @@ export class TriviaService {
   }
 
   async showLeaderboard(): Promise<LeaderboardResponseDto[]> {
-    const users = await this.userService.getAllUsers();
+    const users = await this.userService.getUsers();
 
     const leaderboard = users.map((user) => toLeaderBoard(user));
 
@@ -326,5 +329,28 @@ export class TriviaService {
     const expirationTime = new Date(createdAt.getTime() + duration * 1000);
 
     return currentTime >= expirationTime;
+  }
+
+  async getUserSubmissions(userId: string): Promise<SubmissionResponseDto[]> {
+    const user = await this.userService.findUserById(userId);
+
+    const submissions = await this.submissionRepo
+      .find({ userId: user.id })
+      .lean()
+      .exec();
+
+    const userSubmissions = await Promise.all(
+      submissions.map(async (submission) => {
+        const trivia = await this.getTriviaById(submission.triviaId);
+        const submissionResponse = toSubmissionResponse(submission);
+
+        return {
+          title: trivia.title || '',
+          ...submissionResponse,
+        };
+      }),
+    );
+
+    return userSubmissions;
   }
 }
