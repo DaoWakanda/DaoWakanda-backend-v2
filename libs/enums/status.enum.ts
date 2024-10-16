@@ -5,11 +5,12 @@ export enum TRIVIA_STATUS {
 
 export enum SUBMISSION_STATUS {
   PENDING = 'pending',
-  PASSED = 'passed',
-  FAILED = 'failed',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  DISBURSED = 'disbursed',
 }
 
 export enum REVIEW_STATUS {
-  PASSED = 'passed',
-  FAILED = 'failed',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
 }

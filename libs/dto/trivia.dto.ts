@@ -121,9 +121,9 @@ export class AnswerDto {
 }
 
 export class ReviewStatusDto {
-  @ApiProperty({ enum: REVIEW_STATUS, default: REVIEW_STATUS.FAILED })
+  @ApiProperty({ enum: REVIEW_STATUS, default: REVIEW_STATUS.REJECTED })
   @IsEnum(REVIEW_STATUS)
-  status: REVIEW_STATUS = REVIEW_STATUS.FAILED;
+  status: REVIEW_STATUS = REVIEW_STATUS.REJECTED;
 }
 
 export class LeaderboardResponseDto {
@@ -134,4 +134,22 @@ export class LeaderboardResponseDto {
   @ApiProperty({ description: 'total algos of the winner' })
   @IsString()
   totalAlgos: number;
+}
+
+export class SubmissionResponseDto {
+  @ApiProperty({ description: '' })
+  @IsString()
+  id: string;
+
+  @ApiProperty({ description: 'submission link' })
+  @IsString()
+  repoLink: string;
+
+  @ApiProperty({ description: 'title of the trivia' })
+  @IsString()
+  title: string;
+
+  @ApiProperty({ description: 'submission status' })
+  @IsString()
+  status: string;
 }
