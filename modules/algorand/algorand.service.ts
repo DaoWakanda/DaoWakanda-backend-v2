@@ -28,7 +28,7 @@ export class AlgorandService {
 
   async checkIfAccountHasAsset(
     address: string,
-    assetId: string
+    assetId: string,
   ): Promise<boolean> {
     try {
       const res = await this.algodClient
