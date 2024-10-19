@@ -27,6 +27,8 @@ export const toSubmissionResponse = (submission: Submission & IdObject) => {
   return {
     id: submission._id.toString(),
     repoLink: submission.githubRepoLink,
-    status: submission.status,
+    submissionStatus: submission.submissionStatus,
+    disbursementStatus: submission.disbursementStatus,
+    createdAt: submission.createdAt,
   };
 };

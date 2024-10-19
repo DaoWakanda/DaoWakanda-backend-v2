@@ -1,7 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsNumber, IsEnum } from 'class-validator';
 import { DIFFICULTY_LEVEL } from 'libs/enums/difficulty.enum';
-import { REVIEW_STATUS, TRIVIA_STATUS } from 'libs/enums/status.enum';
+import {
+  DISBURSED_STATUS,
+  REVIEW_STATUS,
+  TRIVIA_STATUS,
+} from 'libs/enums/status.enum';
 
 export class CreateTriviaDto {
   @ApiProperty({ description: 'Title of the trivia' })
@@ -126,6 +130,15 @@ export class ReviewStatusDto {
   status: REVIEW_STATUS = REVIEW_STATUS.REJECTED;
 }
 
+export class DisbursementStatusDto {
+  @ApiProperty({
+    enum: DISBURSED_STATUS,
+    default: DISBURSED_STATUS.PENDING,
+  })
+  @IsEnum(DISBURSED_STATUS)
+  status: DISBURSED_STATUS = DISBURSED_STATUS.PENDING;
+}
+
 export class LeaderboardResponseDto {
   @ApiProperty({ description: 'name of the winner' })
   @IsString()
@@ -151,5 +164,9 @@ export class SubmissionResponseDto {
 
   @ApiProperty({ description: 'submission status' })
   @IsString()
-  status: string;
+  submissionStatus: string;
+
+  @ApiProperty({ description: 'disbursement status' })
+  @IsString()
+  disbursementStatus: string;
 }
