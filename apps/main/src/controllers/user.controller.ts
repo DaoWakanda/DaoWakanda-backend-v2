@@ -1,0 +1,102 @@
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  ApiOperation,
+  ApiBody,
+  ApiParam,
+  ApiTags,
+  ApiResponse,
+  getSchemaPath,
+} from '@nestjs/swagger';
+import { CreateUserDto, UpdateUserDto, UserResponseDto } from 'libs/dto';
+import { UploadImageDto } from 'libs/dto/upload-image.dto';
+import { UserService } from 'modules/user/user.service';
+
+@ApiTags('User Manager')
+@Controller('user')
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+
+  @ApiOperation({ summary: 'Create user details' })
+  @ApiResponse({
+    status: 200,
+    description: 'User created successfully.',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+        data: { $ref: getSchemaPath(UserResponseDto) }, // Use the reference to the UserResponseDto
+      },
+    },
+  })
+  @ApiBody({ type: CreateUserDto })
+  @Post('create')
+  createUser(@Body() userDto: CreateUserDto) {
+    return this.userService.createUser(userDto);
+  }
+
+  @ApiOperation({ summary: 'Get user details by wallet address' })
+  @ApiParam({
+    name: 'walletAddress',
+    required: true,
+    description: 'User wallet address',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User details fetched successfully.',
+    schema: { $ref: getSchemaPath(UserResponseDto) },
+  })
+  @Get(':walletAddress/details')
+  getUser(@Param('walletAddress') walletAddress: string) {
+    return this.userService.findUserByWalletAddress(walletAddress);
+  }
+
+  @ApiOperation({ summary: 'Update user account' })
+  @ApiParam({
+    name: 'walletAddress',
+    required: true,
+    description: 'User wallet address',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User created successfully.',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+        data: { $ref: getSchemaPath(UserResponseDto) },
+      },
+    },
+  })
+  @ApiBody({ type: UpdateUserDto })
+  @Post('update/:walletAddress')
+  updateUser(
+    @Param('walletAddress') walletAddress: string,
+    @Body() userDto: UpdateUserDto,
+  ) {
+    return this.userService.updateUser(walletAddress, userDto);
+  }
+
+  @ApiOperation({ summary: 'Upload image' })
+  @ApiResponse({
+    status: 200,
+    description: 'Image uploaded successfully.',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+      },
+    },
+  })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'User ID',
+  })
+  @Post(':id/upload-image')
+  async uploadProfileImage(
+    @Param('id') id: string,
+    @Body() profileImage: UploadImageDto,
+  ) {
+    return this.userService.uploadProfileImage(id, profileImage);
+  }
+}
