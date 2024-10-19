@@ -1,7 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsNumber, IsEnum } from 'class-validator';
 import { DIFFICULTY_LEVEL } from 'libs/enums/difficulty.enum';
-import { REVIEW_STATUS, TRIVIA_STATUS } from 'libs/enums/status.enum';
+import {
+  DISBURSED_STATUS,
+  REVIEW_STATUS,
+  TRIVIA_STATUS,
+} from 'libs/enums/status.enum';
 
 export class CreateTriviaDto {
   @ApiProperty({ description: 'Title of the trivia' })
@@ -121,9 +125,18 @@ export class AnswerDto {
 }
 
 export class ReviewStatusDto {
-  @ApiProperty({ enum: REVIEW_STATUS, default: REVIEW_STATUS.FAILED })
+  @ApiProperty({ enum: REVIEW_STATUS, default: REVIEW_STATUS.REJECTED })
   @IsEnum(REVIEW_STATUS)
-  status: REVIEW_STATUS = REVIEW_STATUS.FAILED;
+  status: REVIEW_STATUS = REVIEW_STATUS.REJECTED;
+}
+
+export class DisbursementStatusDto {
+  @ApiProperty({
+    enum: DISBURSED_STATUS,
+    default: DISBURSED_STATUS.PENDING,
+  })
+  @IsEnum(DISBURSED_STATUS)
+  status: DISBURSED_STATUS = DISBURSED_STATUS.PENDING;
 }
 
 export class LeaderboardResponseDto {
@@ -134,4 +147,26 @@ export class LeaderboardResponseDto {
   @ApiProperty({ description: 'total algos of the winner' })
   @IsString()
   totalAlgos: number;
+}
+
+export class SubmissionResponseDto {
+  @ApiProperty({ description: '' })
+  @IsString()
+  id: string;
+
+  @ApiProperty({ description: 'submission link' })
+  @IsString()
+  githubLink: string;
+
+  @ApiProperty({ description: 'title of the trivia' })
+  @IsString()
+  title: string;
+
+  @ApiProperty({ description: 'submission status' })
+  @IsString()
+  submissionStatus: string;
+
+  @ApiProperty({ description: 'disbursement status' })
+  @IsString()
+  disbursementStatus: string;
 }

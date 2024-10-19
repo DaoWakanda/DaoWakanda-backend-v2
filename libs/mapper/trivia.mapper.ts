@@ -1,11 +1,11 @@
 import { TriviaResponseDto } from 'libs/dto/trivia.dto';
+import { IdObject } from 'libs/interfaces';
 import { Submission } from 'libs/schema/submission.schema';
 import { Trivia } from 'libs/schema/trivia.schema';
 import { computeTriviaMinutes, parseMinutes } from 'libs/utils/parseMinute';
-import { Types } from 'mongoose';
 
 export const toTriviaResponse = (
-  trivia: Trivia & { _id: Types.ObjectId },
+  trivia: Trivia & IdObject,
 ): TriviaResponseDto => {
   return {
     id: trivia._id.toString(),
@@ -23,12 +23,12 @@ export const toTriviaResponse = (
   };
 };
 
-export const toSubmissionResponse = (
-  submission: Submission & { _id: Types.ObjectId },
-) => {
+export const toSubmissionResponse = (submission: Submission & IdObject) => {
   return {
     id: submission._id.toString(),
-    repoLink: submission.githubRepoLink,
-    status: submission.status,
+    githubLink: submission.githubRepoLink,
+    submissionStatus: submission.submissionStatus,
+    disbursementStatus: submission.disbursementStatus,
+    createdAt: submission.createdAt,
   };
 };

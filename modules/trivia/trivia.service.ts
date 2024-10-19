@@ -4,9 +4,11 @@ import {
   ConflictException,
   GoneException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { sub } from 'date-fns';
 import {
   PageMetaDto,
   PageOptionsDto,
@@ -16,16 +18,20 @@ import {
   AnswerDto,
   CreateTriviaDto,
   LeaderboardResponseDto,
+  SubmissionResponseDto,
   TriviaResponseDto,
   UpdateTriviaDto,
 } from 'libs/dto/trivia.dto';
 import { ERROR } from 'libs/enums/error.enum';
 import { Order } from 'libs/enums/order.enum';
 import {
+  DISBURSED_STATUS,
+  DISBURSEMENT_STATUS,
   REVIEW_STATUS,
   SUBMISSION_STATUS,
   TRIVIA_STATUS,
 } from 'libs/enums/status.enum';
+import { IdObject } from 'libs/interfaces';
 import {
   toSubmissionResponse,
   toTriviaResponse,
@@ -190,7 +196,7 @@ export class TriviaService {
 
     const existingSubmission = await this.submissionRepo
       .findOne({
-        userId,
+        userId: user.id,
         triviaId,
       })
       .exec();
@@ -210,7 +216,7 @@ export class TriviaService {
 
   async getAllSubmissions(
     options: PageOptionsDto,
-  ): Promise<PaginationResponseDto<{ id: string; status: SUBMISSION_STATUS }>> {
+  ): Promise<PaginationResponseDto<SubmissionResponseDto>> {
     const pageOptionsDtoFallBack = createPageOptionFallBack(options);
     const { order, skip, numOfItemsPerPage } = pageOptionsDtoFallBack;
 
@@ -230,7 +236,16 @@ export class TriviaService {
 
     const submissions = await Promise.all(
       allSubmission.map(async (submission) => {
-        return toSubmissionResponse(submission);
+        const user = await this.userService.findUserById(submission.userId);
+        const submissionResponse = toSubmissionResponse(submission);
+        const trivia = await this.getTriviaById(submission.triviaId);
+
+        return {
+          title: trivia.title || '',
+          developer: `${user.firstName} ${user.lastName}`,
+          wallet: user.walletAddress,
+          ...submissionResponse,
+        };
       }),
     );
 
@@ -255,8 +270,8 @@ export class TriviaService {
     }
 
     if (
-      submission.status === SUBMISSION_STATUS.PASSED ||
-      submission.status === SUBMISSION_STATUS.FAILED
+      submission.submissionStatus === SUBMISSION_STATUS.APPROVED ||
+      submission.submissionStatus === SUBMISSION_STATUS.REJECTED
     ) {
       throw new ConflictException(
         `Submission with ID ${submissionId} has already been reviewed`,
@@ -264,10 +279,6 @@ export class TriviaService {
     }
 
     const trivia = await this.triviaRepo.findById(submission.triviaId).exec();
-
-    if (trivia.status === TRIVIA_STATUS.EXPIRED) {
-      throw new GoneException('This Trivia is no longer available');
-    }
 
     if (trivia.winners === trivia.maxWinners) {
       throw new ConflictException(`All winners have already been awarded`);
@@ -277,10 +288,14 @@ export class TriviaService {
       .findOneAndUpdate(
         { _id: submission._id },
         {
-          status:
-            review === REVIEW_STATUS.PASSED
-              ? SUBMISSION_STATUS.PASSED
-              : SUBMISSION_STATUS.FAILED,
+          submissionStatus:
+            review === REVIEW_STATUS.APPROVED
+              ? SUBMISSION_STATUS.APPROVED
+              : SUBMISSION_STATUS.REJECTED,
+          disbursementStatus:
+            review === REVIEW_STATUS.APPROVED
+              ? DISBURSEMENT_STATUS.ELIGIBLE
+              : DISBURSEMENT_STATUS.NOT_ELIGIBLE,
         },
         {
           new: true,
@@ -288,9 +303,7 @@ export class TriviaService {
       )
       .exec();
 
-    if (review === REVIEW_STATUS.PASSED) {
-      await this.awardAlgos(updatedSubmission);
-
+    if (review === REVIEW_STATUS.APPROVED) {
       await this.triviaRepo
         .findOneAndUpdate(
           { _id: trivia._id },
@@ -305,16 +318,79 @@ export class TriviaService {
     };
   }
 
-  async awardAlgos(submission: any) {
-    const trivia = await this.triviaRepo.findById(submission.triviaId).exec();
+  async disbursedAlgos(submissionId: string, status: DISBURSED_STATUS) {
+    const submission = await this.submissionRepo.findById(submissionId).exec();
 
-    if (trivia?.prize) {
-      await this.userService.awardAlgos(submission.userId, trivia.prize);
+    if (!submission) {
+      throw new NotFoundException(
+        `Submission with ID ${submissionId} was not found`,
+      );
+    }
+
+    if (submission.submissionStatus === SUBMISSION_STATUS.REJECTED) {
+      throw new ConflictException(
+        `Submission with ID ${submissionId} isn't eligible for disbursement`,
+      );
+    }
+
+    const updatedSubmission = await this.submissionRepo
+      .findOneAndUpdate(
+        { _id: submission._id },
+        {
+          disbursementStatus:
+            status === DISBURSED_STATUS.DISBURSED
+              ? DISBURSEMENT_STATUS.DISBURSED
+              : DISBURSEMENT_STATUS.PENDING,
+        },
+        {
+          new: true,
+        },
+      )
+      .lean()
+      .exec();
+
+    if (status === DISBURSED_STATUS.DISBURSED) {
+      const result = await this.awardAlgosToDeveloper(updatedSubmission);
+
+      return result;
+    }
+
+    if (status === DISBURSED_STATUS.PENDING) {
+      return {
+        message:
+          'The disbursement is currently pending. Please check back later.',
+      };
+    }
+  }
+
+  async awardAlgosToDeveloper(submission: Submission & IdObject) {
+    try {
+      const trivia = await this.triviaRepo.findById(submission.triviaId).exec();
+
+      if (submission.disbursementStatus === DISBURSEMENT_STATUS.DISBURSED) {
+        if (trivia?.prize) {
+          return await this.userService.awardAlgos(
+            submission.userId,
+            trivia.prize,
+          );
+        } else {
+          return {
+            success: false,
+            message: `No prize found for trivia ID ${submission.triviaId}.`,
+          };
+        }
+      }
+    } catch (error) {
+      console.error('Error awarding algos to developer:', error);
+      return {
+        success: false,
+        message: `Failed to award algos to developer for submission ID ${submission._id}. Error: ${error.message}`,
+      };
     }
   }
 
   async showLeaderboard(): Promise<LeaderboardResponseDto[]> {
-    const users = await this.userService.getAllUsers();
+    const users = await this.userService.getUsers();
 
     const leaderboard = users.map((user) => toLeaderBoard(user));
 
@@ -326,5 +402,49 @@ export class TriviaService {
     const expirationTime = new Date(createdAt.getTime() + duration * 1000);
 
     return currentTime >= expirationTime;
+  }
+
+  async getUserSubmissions(userId: string): Promise<SubmissionResponseDto[]> {
+    const user = await this.userService.findUserById(userId);
+
+    const submissions = await this.submissionRepo
+      .find({ userId: user.id })
+      .lean()
+      .exec();
+
+    const userSubmissions = await Promise.all(
+      submissions.map(async (submission) => {
+        const trivia = await this.getTriviaById(submission.triviaId);
+        const submissionResponse = toSubmissionResponse(submission);
+
+        return {
+          title: trivia.title || '',
+          ...submissionResponse,
+        };
+      }),
+    );
+
+    return userSubmissions;
+  }
+
+  async getSubmissionsByTrivia(triviaId: string) {
+    const submissions = await this.submissionRepo
+      .find({ triviaId })
+      .lean()
+      .exec();
+
+    const submissionsByTrivia = await Promise.all(
+      submissions.map(async (submission) => {
+        const user = await this.userService.findUserById(submission.userId);
+        const submissionResponse = toSubmissionResponse(submission);
+
+        return {
+          developer: `${user.firstName} ${user.lastName}`,
+          ...submissionResponse,
+        };
+      }),
+    );
+
+    return submissionsByTrivia;
   }
 }

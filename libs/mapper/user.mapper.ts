@@ -1,8 +1,9 @@
+import { UserResponseDto } from 'libs/dto';
 import { LeaderboardResponseDto } from 'libs/dto/trivia.dto';
+import { IdObject } from 'libs/interfaces';
 import { User } from 'libs/schema/user.schema';
-import { Types } from 'mongoose';
 
-export const toUserResponse = (user: User & { _id: Types.ObjectId }) => {
+export const toUserResponse = (user: User & IdObject): UserResponseDto => {
   return {
     id: user._id.toString(),
     firstName: user.firstName,

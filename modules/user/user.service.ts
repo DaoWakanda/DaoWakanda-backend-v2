@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
@@ -6,9 +7,12 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateUserDto, UpdateUserDto } from 'libs/dto';
+import { PageMetaDto, PageOptionsDto } from 'libs/dto/page.dto';
 import { UploadImageDto } from 'libs/dto/upload-image.dto';
+import { Order } from 'libs/enums/order.enum';
 import { toUserResponse } from 'libs/mapper/user.mapper';
 import { User } from 'libs/schema/user.schema';
+import { createPageOptionFallBack } from 'libs/utils/createPageOptionFallBack';
 import { FileUploadService } from 'modules/file-upload/file-upload.service';
 import { Model } from 'mongoose';
 
@@ -43,27 +47,56 @@ export class UserService {
       .lean()
       .exec();
 
+    const userResponse = toUserResponse(user);
+
     if (user) {
-      return {
-        id: user._id.toString(),
-        ...user,
-        _id: undefined,
-      };
+      return userResponse;
     }
 
     return null;
   }
 
-  async getAllUsers(): Promise<User[]> {
-    return await this.userRepo.find().sort({ algos: -1 }).exec();
+  async getAllUsers(options: PageOptionsDto) {
+    const pageOptionsDtoFallBack = createPageOptionFallBack(options);
+    const { order, skip, numOfItemsPerPage } = pageOptionsDtoFallBack;
+
+    if (order !== Order.ASC && order !== Order.DESC) {
+      throw new BadRequestException('Order must be either "asc" or "desc"');
+    }
+
+    const [allUsers, itemCount] = await Promise.all([
+      this.userRepo
+        .find()
+        .sort({ algos: -1 })
+        .skip(skip)
+        .limit(numOfItemsPerPage)
+        .exec(),
+      this.userRepo.countDocuments().exec(),
+    ]);
+
+    const userResponse = allUsers.map((user) => toUserResponse(user));
+
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: pageOptionsDtoFallBack,
+    });
+
+    return {
+      data: userResponse,
+      pageMetaDto,
+    };
+  }
+
+  async getUsers(): Promise<User[]> {
+    return await this.userRepo.find().sort({ awardedAlgos: -1 }).lean().exec();
   }
 
   async findUserById(userId: string) {
-    const user = await this.userRepo.findById(userId).exec();
+    const user = await this.userRepo.findById(userId).lean().exec();
 
     if (!user) throw new NotFoundException('User not found');
 
-    return user._id;
+    return toUserResponse(user);
   }
 
   async updateUser(address: string, data: UpdateUserDto) {
@@ -96,11 +129,15 @@ export class UserService {
   }
 
   async awardAlgos(userId: string, algos: number) {
+    const user = await this.findUserById(userId);
+
+    const updatedAlgos = user.awardedAlgos + algos;
+
     const updatedUser = await this.userRepo
       .findByIdAndUpdate(
         userId,
         {
-          awardedAlgos: algos,
+          awardedAlgos: updatedAlgos,
         },
         { new: true },
       )
@@ -110,18 +147,13 @@ export class UserService {
       throw new NotFoundException('Unable to update the user');
     }
 
-    return {
-      message: 'User updated successfully with new algos',
-      updatedUser: {
-        id: updatedUser._id.toString(),
-        awardedAlgos: updatedUser.awardedAlgos,
-      },
-    };
+    return { success: true, message: 'Algos awarded successfully.' };
   }
 
-  async uploadProfileImage(data: UploadImageDto) {
+  async uploadProfileImage(userId: string, data: UploadImageDto) {
     const { base64 } = data;
 
+    await this.findUserById(userId);
     try {
       const imageUrl = await this.imageUpload(base64);
 
@@ -129,8 +161,23 @@ export class UserService {
         throw new InternalServerErrorException('Image upload failed.');
       }
 
+      const updatedUser = await this.userRepo
+        .findByIdAndUpdate(
+          userId,
+          {
+            image: imageUrl,
+            updatedAt: new Date(),
+          },
+          { new: true },
+        )
+        .exec();
+
+      if (!updatedUser) {
+        throw new NotFoundException('Unable to update the user');
+      }
+
       return {
-        imageUrl: imageUrl,
+        message: 'User image was updated successfully',
       };
     } catch (error) {
       console.error('Error uploading profile image:', error);

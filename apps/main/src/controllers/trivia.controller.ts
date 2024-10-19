@@ -21,14 +21,16 @@ import {
 import { PageOptionsDto, PaginationResponseDto } from 'libs/dto/page.dto';
 import {
   CreateTriviaDto,
+  DisbursementStatusDto,
   ReviewStatusDto,
+  SubmissionResponseDto,
   TriviaResponseDto,
   UpdateTriviaDto,
 } from 'libs/dto/trivia.dto';
 import { AdminJwtAuthGuard } from 'libs/guards/jwt/admin-jwt-auth.guard';
 import { TriviaService } from 'modules/trivia/trivia.service';
 
-@ApiTags('Admin Trivia Manager')
+@ApiTags('Admin Challenge Manager')
 @Controller('trivia')
 @UseInterceptors(ClassSerializerInterceptor)
 export class TriviaController {
@@ -93,6 +95,19 @@ export class TriviaController {
   }
 
   @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Get list of all submissions by trivia' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of all submissions by trivia.',
+    type: [SubmissionResponseDto],
+  })
+  @UseGuards(AdminJwtAuthGuard)
+  @Get('submissions-by-trivia/:id')
+  async getSubmissionsByTrivia(@Param('id') id: string) {
+    return this.triviaService.getSubmissionsByTrivia(id);
+  }
+
+  @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Delete current Trivia' })
   @Delete(':id/delete')
   @UseGuards(AdminJwtAuthGuard)
@@ -125,5 +140,22 @@ export class TriviaController {
     @Query() review: ReviewStatusDto,
   ) {
     return this.triviaService.approveAnswer(submissionId, review.status);
+  }
+
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Disburse algos for submission' })
+  @ApiResponse({ status: 200, description: 'Algos disbursed successfully.' })
+  @ApiResponse({ status: 404, description: 'Submission not found.' })
+  @ApiResponse({
+    status: 409,
+    description: "Submission isn't eligible for disbursement.",
+  })
+  @UseGuards(AdminJwtAuthGuard)
+  @Get(':submissionId/disburse')
+  async disburseAlgos(
+    @Param('submissionId') submissionId: string,
+    @Query() status: DisbursementStatusDto,
+  ) {
+    return this.triviaService.disbursedAlgos(submissionId, status.status);
   }
 }

@@ -12,6 +12,7 @@ import { TriviaController } from './controllers/trivia.controller';
 import { TriviaModule } from 'modules/trivia/trivia.module';
 import { UserTriviaController } from './controllers/user-trivia-controller';
 import { FileUploadModule } from 'modules/file-upload/file-upload.module';
+import { AdminUserController } from './controllers/admin-user-controller';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { FileUploadModule } from 'modules/file-upload/file-upload.module';
     UserController,
     TriviaController,
     UserTriviaController,
+    AdminUserController,
   ],
   providers: [],
 })

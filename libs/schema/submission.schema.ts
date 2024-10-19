@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import { SUBMISSION_STATUS } from 'libs/enums/status.enum';
+import { DISBURSEMENT_STATUS, SUBMISSION_STATUS } from 'libs/enums/status.enum';
 import { HydratedDocument } from 'mongoose';
 import { Base } from './base.schema';
 
@@ -22,7 +22,11 @@ export class Submission extends Base {
 
   @ApiProperty({})
   @Prop({ type: String, default: SUBMISSION_STATUS.PENDING })
-  status: SUBMISSION_STATUS;
+  submissionStatus: SUBMISSION_STATUS;
+
+  @ApiProperty({})
+  @Prop({ type: String, default: DISBURSEMENT_STATUS.NOT_DISBURSED })
+  disbursementStatus: DISBURSEMENT_STATUS;
 }
 
 export const SubmissionSchema = SchemaFactory.createForClass(Submission);
