@@ -21,6 +21,7 @@ import {
 import { PageOptionsDto, PaginationResponseDto } from 'libs/dto/page.dto';
 import {
   CreateTriviaDto,
+  DisbursementStatusDto,
   ReviewStatusDto,
   TriviaResponseDto,
   UpdateTriviaDto,
@@ -125,5 +126,22 @@ export class TriviaController {
     @Query() review: ReviewStatusDto,
   ) {
     return this.triviaService.approveAnswer(submissionId, review.status);
+  }
+
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Disburse algos for submission' })
+  @ApiResponse({ status: 200, description: 'Algos disbursed successfully.' })
+  @ApiResponse({ status: 404, description: 'Submission not found.' })
+  @ApiResponse({
+    status: 409,
+    description: "Submission isn't eligible for disbursement.",
+  })
+  @UseGuards(AdminJwtAuthGuard)
+  @Get(':submissionId/disburse')
+  async disburseAlgos(
+    @Param('submissionId') submissionId: string,
+    @Query() status: DisbursementStatusDto,
+  ) {
+    return this.triviaService.disbursedAlgos(submissionId, status.status);
   }
 }

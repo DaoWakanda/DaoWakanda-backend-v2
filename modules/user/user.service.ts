@@ -88,7 +88,7 @@ export class UserService {
   }
 
   async getUsers(): Promise<User[]> {
-    return await this.userRepo.find().sort({ algos: -1 }).lean().exec();
+    return await this.userRepo.find().sort({ awardedAlgos: -1 }).lean().exec();
   }
 
   async findUserById(userId: string) {
@@ -129,11 +129,15 @@ export class UserService {
   }
 
   async awardAlgos(userId: string, algos: number) {
+    const user = await this.findUserById(userId);
+
+    const updatedAlgos = user.awardedAlgos + algos;
+
     const updatedUser = await this.userRepo
       .findByIdAndUpdate(
         userId,
         {
-          awardedAlgos: algos,
+          awardedAlgos: updatedAlgos,
         },
         { new: true },
       )
@@ -143,18 +147,13 @@ export class UserService {
       throw new NotFoundException('Unable to update the user');
     }
 
-    return {
-      message: 'User updated successfully with new algos',
-      updatedUser: {
-        id: updatedUser._id.toString(),
-        awardedAlgos: updatedUser.awardedAlgos,
-      },
-    };
+    return { success: true, message: 'Algos awarded successfully.' };
   }
 
-  async uploadProfileImage(data: UploadImageDto) {
+  async uploadProfileImage(userId: string, data: UploadImageDto) {
     const { base64 } = data;
 
+    await this.findUserById(userId);
     try {
       const imageUrl = await this.imageUpload(base64);
 
@@ -162,8 +161,23 @@ export class UserService {
         throw new InternalServerErrorException('Image upload failed.');
       }
 
+      const updatedUser = await this.userRepo
+        .findByIdAndUpdate(
+          userId,
+          {
+            image: imageUrl,
+            updatedAt: new Date(),
+          },
+          { new: true },
+        )
+        .exec();
+
+      if (!updatedUser) {
+        throw new NotFoundException('Unable to update the user');
+      }
+
       return {
-        imageUrl: imageUrl,
+        message: 'User image was updated successfully',
       };
     } catch (error) {
       console.error('Error uploading profile image:', error);

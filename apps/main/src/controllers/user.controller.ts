@@ -87,8 +87,16 @@ export class UserController {
       },
     },
   })
-  @Post('upload-image')
-  async uploadProfileImage(@Body() profileImage: UploadImageDto) {
-    return this.userService.uploadProfileImage(profileImage);
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'User ID',
+  })
+  @Post(':id/upload-image')
+  async uploadProfileImage(
+    @Param('id') id: string,
+    @Body() profileImage: UploadImageDto,
+  ) {
+    return this.userService.uploadProfileImage(id, profileImage);
   }
 }
