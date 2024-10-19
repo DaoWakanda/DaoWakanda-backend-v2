@@ -426,4 +426,25 @@ export class TriviaService {
 
     return userSubmissions;
   }
+
+  async getSubmissionsByTrivia(triviaId: string) {
+    const submissions = await this.submissionRepo
+      .find({ triviaId })
+      .lean()
+      .exec();
+
+    const submissionsByTrivia = await Promise.all(
+      submissions.map(async (submission) => {
+        const user = await this.userService.findUserById(submission.userId);
+        const submissionResponse = toSubmissionResponse(submission);
+
+        return {
+          developer: `${user.firstName} ${user.lastName}`,
+          ...submissionResponse,
+        };
+      }),
+    );
+
+    return submissionsByTrivia;
+  }
 }

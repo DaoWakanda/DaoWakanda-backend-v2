@@ -26,7 +26,7 @@ export const toTriviaResponse = (
 export const toSubmissionResponse = (submission: Submission & IdObject) => {
   return {
     id: submission._id.toString(),
-    repoLink: submission.githubRepoLink,
+    githubLink: submission.githubRepoLink,
     submissionStatus: submission.submissionStatus,
     disbursementStatus: submission.disbursementStatus,
     createdAt: submission.createdAt,

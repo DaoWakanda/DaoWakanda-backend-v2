@@ -23,6 +23,7 @@ import {
   CreateTriviaDto,
   DisbursementStatusDto,
   ReviewStatusDto,
+  SubmissionResponseDto,
   TriviaResponseDto,
   UpdateTriviaDto,
 } from 'libs/dto/trivia.dto';
@@ -91,6 +92,19 @@ export class TriviaController {
     @Body() triviaDto: UpdateTriviaDto,
   ) {
     return this.triviaService.updateTrivia(id, triviaDto);
+  }
+
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Get list of all submissions by trivia' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of all submissions by trivia.',
+    type: [SubmissionResponseDto],
+  })
+  @UseGuards(AdminJwtAuthGuard)
+  @Get('submissionsByTrivia/:id')
+  async getSubmissionsByTrivia(@Param('id') id: string) {
+    return this.triviaService.getSubmissionsByTrivia(id);
   }
 
   @ApiBearerAuth('Bearer')

@@ -156,7 +156,7 @@ export class SubmissionResponseDto {
 
   @ApiProperty({ description: 'submission link' })
   @IsString()
-  repoLink: string;
+  githubLink: string;
 
   @ApiProperty({ description: 'title of the trivia' })
   @IsString()
