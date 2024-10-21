@@ -12,6 +12,7 @@ import {
 } from 'class-validator';
 import { DIFFICULTY_LEVEL } from 'libs/enums/difficulty.enum';
 import { Order } from 'libs/enums/order.enum';
+import { SUBMISSION_STATUS } from 'libs/enums/status.enum';
 
 export class PageOptionsDto {
   @ApiProperty({ enum: Order, default: Order.ASC })
@@ -106,4 +107,46 @@ export class PaginationResponseDto<T> {
 
   @ApiProperty({ type: () => PageMetaDto })
   readonly pagination: PageMetaDto;
+}
+
+export class SubmissionPageOptionsDto {
+  @ApiProperty({ enum: Order, default: Order.ASC })
+  @IsEnum(Order)
+  @IsOptional()
+  readonly order: Order = Order.ASC;
+
+  @ApiPropertyOptional({
+    enum: SUBMISSION_STATUS,
+  })
+  @IsEnum(SUBMISSION_STATUS)
+  @IsOptional()
+  readonly filterBy?: SUBMISSION_STATUS;
+
+  @ApiPropertyOptional({
+    minimum: 1,
+    default: 1,
+  })
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @IsNumber()
+  @IsOptional()
+  readonly page: number = 1;
+
+  @ApiPropertyOptional({
+    minimum: 1,
+    maximum: 50,
+    default: 10,
+  })
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @IsNumber()
+  @Max(50)
+  @IsOptional()
+  readonly numOfItemsPerPage: number = 10;
+
+  get skip(): number {
+    return (this.page - 1) * this.numOfItemsPerPage;
+  }
 }
