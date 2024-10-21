@@ -35,8 +35,6 @@ export class UserService {
     const createdUser = new this.userRepo(data);
     const savedUser = await createdUser.save();
 
-    console.log(`saved user: ${JSON.stringify(savedUser)}`);
-
     return {
       message: 'User created successfully',
       createdUser: toUserResponse(savedUser),
