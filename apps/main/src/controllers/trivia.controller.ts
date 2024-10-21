@@ -102,7 +102,7 @@ export class TriviaController {
     type: [SubmissionResponseDto],
   })
   @UseGuards(AdminJwtAuthGuard)
-  @Get('submissionsByTrivia/:id')
+  @Get('submissions-by-trivia/:id')
   async getSubmissionsByTrivia(@Param('id') id: string) {
     return this.triviaService.getSubmissionsByTrivia(id);
   }
