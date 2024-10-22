@@ -451,4 +451,21 @@ export class TriviaService {
 
     return submissionsByTrivia;
   }
+
+  async getWinnersByTrivia(triviaId: string) {
+    const submissions = await this.submissionRepo
+      .find({ triviaId, submissionStatus: SUBMISSION_STATUS.APPROVED })
+      .lean()
+      .exec();
+
+    const winnersByTrivia = await Promise.all(
+      submissions.map(async (submission) => {
+        const user = await this.userService.findUserById(submission.userId);
+
+        return user;
+      }),
+    );
+
+    return winnersByTrivia;
+  }
 }
