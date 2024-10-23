@@ -10,6 +10,8 @@ import {
   Query,
   UseGuards,
   UseInterceptors,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -18,7 +20,11 @@ import {
   ApiOperation,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { PageOptionsDto, PaginationResponseDto } from 'libs/dto/page.dto';
+import {
+  PageOptionsDto,
+  PaginationResponseDto,
+  SubmissionPageOptionsDto,
+} from 'libs/dto/page.dto';
 import {
   CreateTriviaDto,
   DisbursementStatusDto,
@@ -125,8 +131,9 @@ export class TriviaController {
     type: [PaginationResponseDto],
   })
   @UseGuards(AdminJwtAuthGuard)
+  @UsePipes(new ValidationPipe({ transform: true }))
   @Get('all-submissions')
-  async getSubmissions(@Query() options: PageOptionsDto) {
+  async getSubmissions(@Query() options: SubmissionPageOptionsDto) {
     return this.triviaService.getAllSubmissions(options);
   }
 

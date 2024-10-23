@@ -8,11 +8,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { sub } from 'date-fns';
 import {
   PageMetaDto,
   PageOptionsDto,
   PaginationResponseDto,
+  SubmissionPageOptionsDto,
 } from 'libs/dto/page.dto';
 import {
   AnswerDto,
@@ -215,23 +215,27 @@ export class TriviaService {
   }
 
   async getAllSubmissions(
-    options: PageOptionsDto,
+    options: SubmissionPageOptionsDto,
   ): Promise<PaginationResponseDto<SubmissionResponseDto>> {
-    const pageOptionsDtoFallBack = createPageOptionFallBack(options);
-    const { order, skip, numOfItemsPerPage } = pageOptionsDtoFallBack;
+    const { order, numOfItemsPerPage, filterBy, page, skip } = options;
 
     if (order !== Order.ASC && order !== Order.DESC) {
       throw new BadRequestException('Order must be either "asc" or "desc"');
     }
 
+    let query = {};
+    if (filterBy) {
+      query = { submissionStatus: filterBy };
+    }
+
     const [allSubmission, itemCount] = await Promise.all([
       this.submissionRepo
-        .find()
+        .find(query)
         .sort({ createdAt: order === Order.ASC ? 1 : -1 })
         .skip(skip)
         .limit(numOfItemsPerPage)
         .exec(),
-      this.submissionRepo.countDocuments().exec(),
+      this.submissionRepo.countDocuments(query).exec(),
     ]);
 
     const submissions = await Promise.all(
@@ -251,7 +255,7 @@ export class TriviaService {
 
     const pageMetaDto = new PageMetaDto({
       itemCount,
-      pageOptionsDto: pageOptionsDtoFallBack,
+      pageOptionsDto: options,
     });
 
     return {
@@ -446,5 +450,22 @@ export class TriviaService {
     );
 
     return submissionsByTrivia;
+  }
+
+  async getWinnersByTrivia(triviaId: string) {
+    const submissions = await this.submissionRepo
+      .find({ triviaId, submissionStatus: SUBMISSION_STATUS.APPROVED })
+      .lean()
+      .exec();
+
+    const winnersByTrivia = await Promise.all(
+      submissions.map(async (submission) => {
+        const user = await this.userService.findUserById(submission.userId);
+
+        return user;
+      }),
+    );
+
+    return winnersByTrivia;
   }
 }

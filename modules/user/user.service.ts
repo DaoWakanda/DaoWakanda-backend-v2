@@ -87,7 +87,13 @@ export class UserService {
   }
 
   async getUsers(): Promise<User[]> {
-    return await this.userRepo.find().sort({ awardedAlgos: -1 }).lean().exec();
+    return await this.userRepo
+      .find()
+      .where('awardedAlgos')
+      .gte(1)
+      .sort({ awardedAlgos: -1 })
+      .lean()
+      .exec();
   }
 
   async findUserById(userId: string) {
