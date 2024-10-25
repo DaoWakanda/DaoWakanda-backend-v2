@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -13,6 +14,13 @@ import {
   VoteProposalDto,
 } from 'libs/dto';
 import {
+  BasePageOptionsDto,
+  PageMetaDto,
+  PaginationResponseDto,
+} from 'libs/dto/page.dto';
+import { Order } from 'libs/enums/order.enum';
+import { toProposal } from 'libs/mapper/proposal.mapper';
+import {
   AssetWhitelist,
   AssetWhitelistDocument,
 } from 'libs/schema/asset-whitelist.schema';
@@ -26,7 +34,7 @@ export class ProposalService {
     @InjectModel(Proposal.name) private proposalModel: Model<ProposalDocument>,
     @InjectModel(AssetWhitelist.name)
     private assetWhitelistModel: Model<AssetWhitelistDocument>,
-    private readonly algorandService: AlgorandService
+    private readonly algorandService: AlgorandService,
   ) {}
 
   async addAssetToWhitelist(assetId: string) {
@@ -55,7 +63,7 @@ export class ProposalService {
 
     if (!existingAsset) {
       throw new ForbiddenException(
-        'No asset with the given ID exists in the whitelist.'
+        'No asset with the given ID exists in the whitelist.',
       );
     }
 
@@ -80,14 +88,14 @@ export class ProposalService {
 
       if (!assetExists) {
         throw new ForbiddenException(
-          `No asset with asset id ${assetId} exists`
+          `No asset with asset id ${assetId} exists`,
         );
       }
     }
 
     const existingAssetIds = await this.getAllWhitelist();
     const assetIdsToUpload = assetIds.filter(
-      (asset) => !existingAssetIds.includes(asset)
+      (asset) => !existingAssetIds.includes(asset),
     );
     const assets = Array.from(new Set(assetIdsToUpload)).map((asset) => ({
       assetId: asset,
@@ -101,7 +109,7 @@ export class ProposalService {
   async batchDeleteAssetsFromWhiteList(assetIds: string[]) {
     const existingAssetIds = await this.getAllWhitelist();
     const assetIdsToDelete = assetIds.filter((asset) =>
-      existingAssetIds.includes(asset)
+      existingAssetIds.includes(asset),
     );
     await this.assetWhitelistModel.deleteMany({
       assetId: { $in: assetIdsToDelete },
@@ -115,7 +123,7 @@ export class ProposalService {
 
     if (!proposal) {
       throw new NotFoundException(
-        'No proposal with the provided App ID exists'
+        'No proposal with the provided App ID exists',
       );
     }
 
@@ -134,7 +142,39 @@ export class ProposalService {
     };
   }
 
-  async getAllProposals(): Promise<ProposalDto[]> {
+  async getAllProposals(
+    options: BasePageOptionsDto,
+  ): Promise<PaginationResponseDto<ProposalDto>> {
+    const { order, numOfItemsPerPage, skip } = options;
+
+    if (order !== Order.ASC && order !== Order.DESC) {
+      throw new BadRequestException('Order must be either "asc" or "desc"');
+    }
+
+    const [allProposal, itemCount] = await Promise.all([
+      this.proposalModel
+        .find()
+        .sort({ createdAt: order === Order.ASC ? 1 : -1 })
+        .skip(skip)
+        .limit(numOfItemsPerPage)
+        .exec(),
+      this.proposalModel.countDocuments().exec(),
+    ]);
+
+    const proposals = allProposal.map((proposal) => toProposal(proposal));
+
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: options,
+    });
+
+    return {
+      data: proposals,
+      pagination: pageMetaDto,
+    };
+  }
+
+  async getProposals(): Promise<ProposalDto[]> {
     const proposals = await this.proposalModel.find({});
 
     return proposals.map((proposal) => ({
@@ -159,7 +199,7 @@ export class ProposalService {
 
     if (existingProposal) {
       throw new ConflictException(
-        'A proposal with the provided App ID exists already'
+        'A proposal with the provided App ID exists already',
       );
     }
 
@@ -199,7 +239,7 @@ export class ProposalService {
 
     if (!proposal.ongoing) {
       throw new ForbiddenException(
-        'This proposal is no longer open for voting'
+        'This proposal is no longer open for voting',
       );
     }
 
@@ -218,7 +258,7 @@ export class ProposalService {
       {
         $set: { [dto.vote ? 'yesVotes' : 'noVotes']: voters },
         $push: { registeredVoters: dto.voterAddress },
-      }
+      },
     );
 
     return this.getProposalByAppId(appId);
@@ -229,7 +269,7 @@ export class ProposalService {
 
     await this.proposalModel.deleteOne({ appId });
 
-    return this.getAllProposals();
+    return this.getProposals();
   }
 
   async validateAddress(address: string): Promise<ValidateAddressResDto> {
@@ -238,7 +278,7 @@ export class ProposalService {
     for (const assetId of assetIds) {
       const isValid = await this.algorandService.checkIfAccountHasAsset(
         address,
-        assetId
+        assetId,
       );
 
       if (isValid) {
@@ -247,7 +287,7 @@ export class ProposalService {
     }
 
     throw new ForbiddenException(
-      'Your address cannot create or vote in a Proposal on DaoWakanda'
+      'Your address cannot create or vote in a Proposal on DaoWakanda',
     );
   }
 }
