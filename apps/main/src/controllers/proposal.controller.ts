@@ -5,7 +5,10 @@ import {
   Get,
   Param,
   Post,
+  Query,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -26,6 +29,7 @@ import {
   ValidateAddressResDto,
   VoteProposalDto,
 } from 'libs/dto';
+import { BasePageOptionsDto, PaginationResponseDto } from 'libs/dto/page.dto';
 import { AdminJwtAuthGuard } from 'libs/guards/jwt/admin-jwt-auth.guard';
 import { ProposalService } from 'modules/proposal/proposal.service';
 
@@ -80,10 +84,11 @@ export class ProposalController {
   }
 
   @ApiOperation({ summary: 'Get all proposals' })
-  @ApiResponse({ type: ProposalDto, isArray: true })
+  @ApiResponse({ type: PaginationResponseDto<ProposalDto> })
+  @UsePipes(new ValidationPipe({ transform: true }))
   @Get('all')
-  getAllProposal() {
-    return this.proposalService.getAllProposals();
+  getAllProposal(@Query() options: BasePageOptionsDto) {
+    return this.proposalService.getAllProposals(options);
   }
 
   @ApiOperation({ summary: 'Get proposal by App ID' })

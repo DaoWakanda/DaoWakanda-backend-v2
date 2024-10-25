@@ -14,23 +14,11 @@ import { DIFFICULTY_LEVEL } from 'libs/enums/difficulty.enum';
 import { Order } from 'libs/enums/order.enum';
 import { SUBMISSION_STATUS } from 'libs/enums/status.enum';
 
-export class PageOptionsDto {
+export class BasePageOptionsDto {
   @ApiProperty({ enum: Order, default: Order.ASC })
   @IsEnum(Order)
   @IsOptional()
   readonly order: Order = Order.ASC;
-
-  @ApiPropertyOptional({
-    enum: DIFFICULTY_LEVEL,
-  })
-  @IsEnum(DIFFICULTY_LEVEL)
-  @IsOptional()
-  readonly filterBy?: DIFFICULTY_LEVEL;
-
-  @ApiPropertyOptional({})
-  @IsString()
-  @IsOptional()
-  readonly searchTerm?: string;
 
   @ApiPropertyOptional({
     minimum: 1,
@@ -59,6 +47,19 @@ export class PageOptionsDto {
   get skip(): number {
     return (+this.page - 1) * +this.numOfItemsPerPage;
   }
+}
+export class PageOptionsDto extends BasePageOptionsDto {
+  @ApiPropertyOptional({
+    enum: DIFFICULTY_LEVEL,
+  })
+  @IsEnum(DIFFICULTY_LEVEL)
+  @IsOptional()
+  readonly filterBy?: DIFFICULTY_LEVEL;
+
+  @ApiPropertyOptional({})
+  @IsString()
+  @IsOptional()
+  readonly searchTerm?: string;
 }
 
 export class PageMetaDto {
@@ -109,44 +110,11 @@ export class PaginationResponseDto<T> {
   readonly pagination: PageMetaDto;
 }
 
-export class SubmissionPageOptionsDto {
-  @ApiProperty({ enum: Order, default: Order.ASC })
-  @IsEnum(Order)
-  @IsOptional()
-  readonly order: Order = Order.ASC;
-
+export class SubmissionPageOptionsDto extends BasePageOptionsDto {
   @ApiPropertyOptional({
     enum: SUBMISSION_STATUS,
   })
   @IsEnum(SUBMISSION_STATUS)
   @IsOptional()
   readonly filterBy?: SUBMISSION_STATUS;
-
-  @ApiPropertyOptional({
-    minimum: 1,
-    default: 1,
-  })
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @IsNumber()
-  @IsOptional()
-  readonly page: number = 1;
-
-  @ApiPropertyOptional({
-    minimum: 1,
-    maximum: 50,
-    default: 10,
-  })
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @IsNumber()
-  @Max(50)
-  @IsOptional()
-  readonly numOfItemsPerPage: number = 10;
-
-  get skip(): number {
-    return (this.page - 1) * this.numOfItemsPerPage;
-  }
 }
