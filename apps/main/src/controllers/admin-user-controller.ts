@@ -7,7 +7,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UserResponseDto } from 'libs/dto';
-import { PageOptionsDto, PaginationResponseDto } from 'libs/dto/page.dto';
+import { BasePageOptionsDto, PaginationResponseDto } from 'libs/dto/page.dto';
 import { SubmissionResponseDto } from 'libs/dto/trivia.dto';
 import { AdminJwtAuthGuard } from 'libs/guards/jwt/admin-jwt-auth.guard';
 import { TriviaService } from 'modules/trivia/trivia.service';
@@ -32,7 +32,7 @@ export class AdminUserController {
   })
   @UseGuards(AdminJwtAuthGuard)
   @Get('all')
-  async getUsers(@Query() options: PageOptionsDto) {
+  async getUsers(@Query() options: BasePageOptionsDto) {
     return this.userService.getAllUsers(options);
   }
 
