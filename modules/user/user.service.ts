@@ -47,9 +47,8 @@ export class UserService {
       .lean()
       .exec();
 
-    const userResponse = toUserResponse(user);
-
     if (user) {
+      const userResponse = toUserResponse(user);
       return userResponse;
     }
 
