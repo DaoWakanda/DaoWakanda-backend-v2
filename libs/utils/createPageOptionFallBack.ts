@@ -16,8 +16,8 @@ export const createPageOptionFallBack = (
     order?: Order;
     page?: number;
     numOfItemsPerPage?: number;
-    filterByDifficulty?: DIFFICULTY_LEVEL;
-    filterByStatus?: TRIVIA_STATUS;
+    difficulty?: DIFFICULTY_LEVEL;
+    status?: TRIVIA_STATUS;
     searchTerm?: string;
   },
 ) => {
@@ -26,10 +26,8 @@ export const createPageOptionFallBack = (
   const numOfItemsPerPage =
     pageOptionsDto.numOfItemsPerPage || defaults?.numOfItemsPerPage || 10;
   const skip = (page - 1) * numOfItemsPerPage;
-  const filterByDifficulty =
-    pageOptionsDto.filterByDifficulty || defaults?.filterByDifficulty;
-  const filterByStatus =
-    pageOptionsDto.filterByStatus || defaults?.filterByStatus;
+  const filterByDifficulty = pageOptionsDto.difficulty || defaults?.difficulty;
+  const filterByStatus = pageOptionsDto.status || defaults?.status;
   const searchTerm = pageOptionsDto.searchTerm || defaults?.searchTerm;
 
   const pageOptionsDtoFallBack: PageOptionsDto = {
@@ -37,8 +35,8 @@ export const createPageOptionFallBack = (
     page,
     numOfItemsPerPage,
     skip,
-    filterByDifficulty,
-    filterByStatus,
+    difficulty: filterByDifficulty,
+    status: filterByStatus,
     searchTerm,
   };
 

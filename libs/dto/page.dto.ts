@@ -54,14 +54,14 @@ export class PageOptionsDto extends BasePageOptionsDto {
   })
   @IsEnum(DIFFICULTY_LEVEL)
   @IsOptional()
-  readonly filterByDifficulty?: DIFFICULTY_LEVEL;
+  readonly difficulty?: DIFFICULTY_LEVEL;
 
   @ApiPropertyOptional({
     enum: TRIVIA_STATUS,
   })
   @IsEnum(TRIVIA_STATUS)
   @IsOptional()
-  readonly filterByStatus?: TRIVIA_STATUS;
+  readonly status?: TRIVIA_STATUS;
 
   @ApiPropertyOptional({})
   @IsString()

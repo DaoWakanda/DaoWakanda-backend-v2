@@ -78,14 +78,8 @@ export class TriviaService {
     options: PageOptionsDto,
   ): Promise<PaginationResponseDto<TriviaResponseDto>> {
     const pageOptionsDtoFallBack = createPageOptionFallBack(options);
-    const {
-      order,
-      skip,
-      numOfItemsPerPage,
-      filterByDifficulty: difficulty,
-      filterByStatus: status,
-      searchTerm,
-    } = pageOptionsDtoFallBack;
+    const { order, skip, numOfItemsPerPage, difficulty, status, searchTerm } =
+      pageOptionsDtoFallBack;
 
     if (order !== Order.ASC && order !== Order.DESC) {
       throw new BadRequestException('Order must be either "asc" or "desc"');
