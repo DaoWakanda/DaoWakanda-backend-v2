@@ -78,8 +78,14 @@ export class TriviaService {
     options: PageOptionsDto,
   ): Promise<PaginationResponseDto<TriviaResponseDto>> {
     const pageOptionsDtoFallBack = createPageOptionFallBack(options);
-    const { order, skip, numOfItemsPerPage, filterBy, searchTerm } =
-      pageOptionsDtoFallBack;
+    const {
+      order,
+      skip,
+      numOfItemsPerPage,
+      filterByDifficulty: difficulty,
+      filterByStatus: status,
+      searchTerm,
+    } = pageOptionsDtoFallBack;
 
     if (order !== Order.ASC && order !== Order.DESC) {
       throw new BadRequestException('Order must be either "asc" or "desc"');
@@ -91,8 +97,12 @@ export class TriviaService {
       query.title = { $regex: searchTerm, $options: 'i' };
     }
 
-    if (filterBy) {
-      query.difficulty = filterBy;
+    if (difficulty) {
+      query.difficulty = difficulty;
+    }
+
+    if (status) {
+      query.status = status;
     }
 
     const [allTrivias, itemCount] = await Promise.all([
@@ -107,7 +117,7 @@ export class TriviaService {
 
     const triviaResponse = await Promise.all(
       allTrivias.map(async (trivia) => {
-        if (this.hasTimeElapsed(trivia.createdAt, trivia.duration)) {
+        if (this.hasTimeElapsed(trivia.endTimeStamp)) {
           await this.triviaRepo
             .findByIdAndUpdate(trivia._id, { status: 'expired' }, { new: true })
             .exec();
@@ -141,12 +151,33 @@ export class TriviaService {
   }
 
   async updateTrivia(id: string, triviaDto: UpdateTriviaDto) {
+    const existingTrivia = await this.triviaRepo.findById(id).exec();
+
+    if (!existingTrivia) {
+      throw new NotFoundException('Trivia not found.');
+    }
+
+    let newEndTimeStamp = existingTrivia.endTimeStamp;
+
+    if (triviaDto.duration) {
+      newEndTimeStamp = Date.now() + triviaDto.duration * 1000;
+    }
+
+    let newStatus = existingTrivia.status;
+    if (
+      newEndTimeStamp > Date.now() &&
+      existingTrivia.status === TRIVIA_STATUS.EXPIRED
+    ) {
+      newStatus = TRIVIA_STATUS.ONGOING;
+    }
+
     const updatedTrivia = await this.triviaRepo
       .findOneAndUpdate(
         { _id: id },
         {
           ...triviaDto,
           updatedAt: new Date(),
+          status: newStatus,
         },
         { new: true },
       )
@@ -190,7 +221,7 @@ export class TriviaService {
       throw new NotFoundException(ERROR.TRIVIA_NOT_FOUND);
     }
 
-    if (this.hasTimeElapsed(trivia.createdAt, trivia.duration)) {
+    if (this.hasTimeElapsed(trivia.endTimeStamp)) {
       throw new ConflictException(ERROR.TRIVIA_EXPIRED);
     }
 
@@ -401,11 +432,16 @@ export class TriviaService {
     return leaderboard;
   }
 
-  private hasTimeElapsed(createdAt: Date, duration: number): boolean {
-    const currentTime = new Date();
-    const expirationTime = new Date(createdAt.getTime() + duration * 1000);
+  // private hasTimeElapsed(createdAt: Date, duration: number): boolean {
+  //   const currentTime = new Date();
+  //   const expirationTime = new Date(createdAt.getTime() + duration * 1000);
 
-    return currentTime >= expirationTime;
+  //   return currentTime >= expirationTime;
+  // }
+
+  private hasTimeElapsed(endTimeStamp: number): boolean {
+    const currentTime = Date.now();
+    return currentTime >= endTimeStamp;
   }
 
   async getUserSubmissions(userId: string): Promise<SubmissionResponseDto[]> {

@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateUserDto, UpdateUserDto } from 'libs/dto';
-import { PageMetaDto, PageOptionsDto } from 'libs/dto/page.dto';
+import { BasePageOptionsDto, PageMetaDto } from 'libs/dto/page.dto';
 import { UploadImageDto } from 'libs/dto/upload-image.dto';
 import { Order } from 'libs/enums/order.enum';
 import { toUserResponse } from 'libs/mapper/user.mapper';
@@ -55,7 +55,7 @@ export class UserService {
     return null;
   }
 
-  async getAllUsers(options: PageOptionsDto) {
+  async getAllUsers(options: BasePageOptionsDto) {
     const pageOptionsDtoFallBack = createPageOptionFallBack(options);
     const { order, skip, numOfItemsPerPage } = pageOptionsDtoFallBack;
 

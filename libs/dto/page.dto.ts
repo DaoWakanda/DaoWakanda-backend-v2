@@ -12,7 +12,7 @@ import {
 } from 'class-validator';
 import { DIFFICULTY_LEVEL } from 'libs/enums/difficulty.enum';
 import { Order } from 'libs/enums/order.enum';
-import { SUBMISSION_STATUS } from 'libs/enums/status.enum';
+import { SUBMISSION_STATUS, TRIVIA_STATUS } from 'libs/enums/status.enum';
 
 export class BasePageOptionsDto {
   @ApiProperty({ enum: Order, default: Order.ASC })
@@ -54,7 +54,14 @@ export class PageOptionsDto extends BasePageOptionsDto {
   })
   @IsEnum(DIFFICULTY_LEVEL)
   @IsOptional()
-  readonly filterBy?: DIFFICULTY_LEVEL;
+  readonly filterByDifficulty?: DIFFICULTY_LEVEL;
+
+  @ApiPropertyOptional({
+    enum: TRIVIA_STATUS,
+  })
+  @IsEnum(TRIVIA_STATUS)
+  @IsOptional()
+  readonly filterByStatus?: TRIVIA_STATUS;
 
   @ApiPropertyOptional({})
   @IsString()
