@@ -66,3 +66,18 @@ TriviaSchema.pre<Trivia>('save', function (next) {
 
   next();
 });
+
+TriviaSchema.pre('findOneAndUpdate', function (next) {
+  const update = this.getUpdate() as Partial<Trivia>;
+
+  if (update.duration && !update.endTimeStamp) {
+    const durationInMs = update.duration * 1000;
+
+    const now = new Date().getTime();
+    update.endTimeStamp = now + durationInMs;
+  }
+
+  update.updatedAt = new Date();
+  this.setUpdate(update);
+  next();
+});
