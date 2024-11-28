@@ -9,6 +9,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { UserResponseDto } from 'libs/dto';
 import { PageOptionsDto, PaginationResponseDto } from 'libs/dto/page.dto';
 import {
   AnswerDto,
@@ -79,5 +80,16 @@ export class UserTriviaController {
   })
   async showLeader() {
     return this.triviaService.showLeaderboard();
+  }
+
+  @ApiOperation({ summary: 'Get list of all winners by trivia' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of all winners by trivia.',
+    type: [UserResponseDto],
+  })
+  @Get('winners-by-trivia/:id')
+  async getWinnersByTrivia(@Param('id') id: string) {
+    return this.triviaService.getWinnersByTrivia(id);
   }
 }

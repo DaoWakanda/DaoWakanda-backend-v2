@@ -26,7 +26,7 @@ async function bootstrap() {
         description: 'Enter JWT token',
         in: 'header',
       },
-      'Bearer' // This name here is important for matching up with @ApiBearerAuth() in your controller!
+      'Bearer', // This name here is important for matching up with @ApiBearerAuth() in your controller!
     )
     .build();
   const document = SwaggerModule.createDocument(app, config);

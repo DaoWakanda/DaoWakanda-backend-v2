@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateUserDto, UpdateUserDto } from 'libs/dto';
-import { PageMetaDto, PageOptionsDto } from 'libs/dto/page.dto';
+import { BasePageOptionsDto, PageMetaDto } from 'libs/dto/page.dto';
 import { UploadImageDto } from 'libs/dto/upload-image.dto';
 import { Order } from 'libs/enums/order.enum';
 import { toUserResponse } from 'libs/mapper/user.mapper';
@@ -55,7 +55,7 @@ export class UserService {
     return null;
   }
 
-  async getAllUsers(options: PageOptionsDto) {
+  async getAllUsers(options: BasePageOptionsDto) {
     const pageOptionsDtoFallBack = createPageOptionFallBack(options);
     const { order, skip, numOfItemsPerPage } = pageOptionsDtoFallBack;
 
@@ -66,7 +66,7 @@ export class UserService {
     const [allUsers, itemCount] = await Promise.all([
       this.userRepo
         .find()
-        .sort({ algos: -1 })
+        .sort({ awardedAlgos: order === Order.ASC ? 1 : -1 })
         .skip(skip)
         .limit(numOfItemsPerPage)
         .exec(),
@@ -82,12 +82,18 @@ export class UserService {
 
     return {
       data: userResponse,
-      pageMetaDto,
+      pagination: pageMetaDto,
     };
   }
 
   async getUsers(): Promise<User[]> {
-    return await this.userRepo.find().sort({ awardedAlgos: -1 }).lean().exec();
+    return await this.userRepo
+      .find()
+      .where('awardedAlgos')
+      .gte(1)
+      .sort({ awardedAlgos: -1 })
+      .lean()
+      .exec();
   }
 
   async findUserById(userId: string) {

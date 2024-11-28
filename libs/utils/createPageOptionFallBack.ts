@@ -1,6 +1,7 @@
 import { PageOptionsDto } from 'libs/dto/page.dto';
 import { DIFFICULTY_LEVEL } from 'libs/enums/difficulty.enum';
 import { Order } from 'libs/enums/order.enum';
+import { TRIVIA_STATUS } from 'libs/enums/status.enum';
 
 /**
  * @description This function accepts a pagination query object and
@@ -15,7 +16,8 @@ export const createPageOptionFallBack = (
     order?: Order;
     page?: number;
     numOfItemsPerPage?: number;
-    filterBy?: DIFFICULTY_LEVEL;
+    difficulty?: DIFFICULTY_LEVEL;
+    status?: TRIVIA_STATUS;
     searchTerm?: string;
   },
 ) => {
@@ -24,7 +26,8 @@ export const createPageOptionFallBack = (
   const numOfItemsPerPage =
     pageOptionsDto.numOfItemsPerPage || defaults?.numOfItemsPerPage || 10;
   const skip = (page - 1) * numOfItemsPerPage;
-  const filterBy = pageOptionsDto.filterBy || defaults?.filterBy;
+  const filterByDifficulty = pageOptionsDto.difficulty || defaults?.difficulty;
+  const filterByStatus = pageOptionsDto.status || defaults?.status;
   const searchTerm = pageOptionsDto.searchTerm || defaults?.searchTerm;
 
   const pageOptionsDtoFallBack: PageOptionsDto = {
@@ -32,7 +35,8 @@ export const createPageOptionFallBack = (
     page,
     numOfItemsPerPage,
     skip,
-    filterBy,
+    difficulty: filterByDifficulty,
+    status: filterByStatus,
     searchTerm,
   };
 

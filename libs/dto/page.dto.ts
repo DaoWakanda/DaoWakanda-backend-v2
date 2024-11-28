@@ -12,24 +12,13 @@ import {
 } from 'class-validator';
 import { DIFFICULTY_LEVEL } from 'libs/enums/difficulty.enum';
 import { Order } from 'libs/enums/order.enum';
+import { SUBMISSION_STATUS, TRIVIA_STATUS } from 'libs/enums/status.enum';
 
-export class PageOptionsDto {
+export class BasePageOptionsDto {
   @ApiProperty({ enum: Order, default: Order.ASC })
   @IsEnum(Order)
   @IsOptional()
   readonly order: Order = Order.ASC;
-
-  @ApiPropertyOptional({
-    enum: DIFFICULTY_LEVEL,
-  })
-  @IsEnum(DIFFICULTY_LEVEL)
-  @IsOptional()
-  readonly filterBy?: DIFFICULTY_LEVEL;
-
-  @ApiPropertyOptional({})
-  @IsString()
-  @IsOptional()
-  readonly searchTerm?: string;
 
   @ApiPropertyOptional({
     minimum: 1,
@@ -58,6 +47,26 @@ export class PageOptionsDto {
   get skip(): number {
     return (+this.page - 1) * +this.numOfItemsPerPage;
   }
+}
+export class PageOptionsDto extends BasePageOptionsDto {
+  @ApiPropertyOptional({
+    enum: DIFFICULTY_LEVEL,
+  })
+  @IsEnum(DIFFICULTY_LEVEL)
+  @IsOptional()
+  readonly difficulty?: DIFFICULTY_LEVEL;
+
+  @ApiPropertyOptional({
+    enum: TRIVIA_STATUS,
+  })
+  @IsEnum(TRIVIA_STATUS)
+  @IsOptional()
+  readonly status?: TRIVIA_STATUS;
+
+  @ApiPropertyOptional({})
+  @IsString()
+  @IsOptional()
+  readonly searchTerm?: string;
 }
 
 export class PageMetaDto {
@@ -106,4 +115,13 @@ export class PaginationResponseDto<T> {
 
   @ApiProperty({ type: () => PageMetaDto })
   readonly pagination: PageMetaDto;
+}
+
+export class SubmissionPageOptionsDto extends BasePageOptionsDto {
+  @ApiPropertyOptional({
+    enum: SUBMISSION_STATUS,
+  })
+  @IsEnum(SUBMISSION_STATUS)
+  @IsOptional()
+  readonly filterBy?: SUBMISSION_STATUS;
 }
