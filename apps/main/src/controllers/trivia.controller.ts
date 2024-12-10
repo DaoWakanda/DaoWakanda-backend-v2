@@ -141,7 +141,7 @@ export class TriviaController {
   @ApiOperation({ summary: 'Approve submission' })
   @ApiResponse({ status: 200, description: 'Submission approved.' })
   @UseGuards(AdminJwtAuthGuard)
-  @Get('approve/:submissionId')
+  @Patch('approve/:submissionId')
   async approveSubmission(
     @Param('submissionId') submissionId: string,
     @Query() review: ReviewStatusDto,
@@ -158,7 +158,7 @@ export class TriviaController {
     description: "Submission isn't eligible for disbursement.",
   })
   @UseGuards(AdminJwtAuthGuard)
-  @Get(':submissionId/disburse')
+  @Patch(':submissionId/disburse')
   async disburseAlgos(
     @Param('submissionId') submissionId: string,
     @Query() status: DisbursementStatusDto,

@@ -307,10 +307,20 @@ export class TriviaService {
       );
     }
 
-    const trivia = await this.triviaRepo.findById(submission.triviaId).exec();
+    if (review === REVIEW_STATUS.APPROVED) {
+      const trivia = await this.triviaRepo.findById(submission.triviaId).exec();
 
-    if (trivia.winners === trivia.maxWinners) {
-      throw new ConflictException(`All winners have already been awarded`);
+      if (trivia.winners === trivia.maxWinners) {
+        throw new ConflictException(`All winners have already been awarded`);
+      }
+
+      await this.triviaRepo
+        .findOneAndUpdate(
+          { _id: trivia._id },
+          { $inc: { winners: 1 } },
+          { new: true },
+        )
+        .exec();
     }
 
     const updatedSubmission = await this.submissionRepo
@@ -331,16 +341,6 @@ export class TriviaService {
         },
       )
       .exec();
-
-    if (review === REVIEW_STATUS.APPROVED) {
-      await this.triviaRepo
-        .findOneAndUpdate(
-          { _id: trivia._id },
-          { $inc: { winners: 1 } },
-          { new: true },
-        )
-        .exec();
-    }
 
     return {
       message: 'Submission has been reviewed successfully',
