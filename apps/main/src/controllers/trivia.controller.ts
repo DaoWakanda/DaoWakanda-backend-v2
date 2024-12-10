@@ -141,12 +141,12 @@ export class TriviaController {
   @ApiOperation({ summary: 'Approve submission' })
   @ApiResponse({ status: 200, description: 'Submission approved.' })
   @UseGuards(AdminJwtAuthGuard)
-  @Patch('approve/:submissionId')
+  @Patch('review-submission/:submissionId')
   async approveSubmission(
     @Param('submissionId') submissionId: string,
     @Query() review: ReviewStatusDto,
   ) {
-    return this.triviaService.approveAnswer(submissionId, review.status);
+    return this.triviaService.reviewSubmission(submissionId, review.status);
   }
 
   @ApiBearerAuth('Bearer')

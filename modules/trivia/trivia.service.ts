@@ -289,7 +289,7 @@ export class TriviaService {
     };
   }
 
-  async approveAnswer(submissionId: string, review: REVIEW_STATUS) {
+  async reviewSubmission(submissionId: string, review: REVIEW_STATUS) {
     const submission = await this.submissionRepo.findById(submissionId).exec();
 
     if (!submission) {
