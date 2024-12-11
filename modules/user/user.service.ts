@@ -66,7 +66,7 @@ export class UserService {
     const [allUsers, itemCount] = await Promise.all([
       this.userRepo
         .find()
-        .sort({ awardedAlgos: order === Order.ASC ? 1 : -1 })
+        .sort({ awardedAlgos: order === Order.ASC ? 1 : -1, _id: 1 })
         .skip(skip)
         .limit(numOfItemsPerPage)
         .exec(),
@@ -80,6 +80,7 @@ export class UserService {
       pageOptionsDto: pageOptionsDtoFallBack,
     });
 
+    // Return paginated response
     return {
       data: userResponse,
       pagination: pageMetaDto,

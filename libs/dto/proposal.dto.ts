@@ -126,6 +126,14 @@ export class ValidateAddressDto {
   address: string;
 }
 
+export class ValidateAddressVoteDto {
+  @ApiProperty()
+  address: string;
+
+  @ApiProperty()
+  appId: string;
+}
+
 export class ValidateAddressResDto {
   @ApiProperty()
   valid: boolean;
@@ -135,4 +143,26 @@ export class ValidateAddressResDto {
 
   @ApiProperty()
   assetId: string;
+}
+
+export class CreateProposalGroupDto {
+  @ApiProperty({ type: String, isArray: true })
+  @IsArray()
+  @IsNotEmpty()
+  appIds: string[];
+}
+
+export class EditProposalGroupDto {
+  @ApiProperty({ type: String, isArray: true })
+  @IsArray()
+  @IsNotEmpty()
+  appIds: string[];
+}
+
+export class ProposalGroupDto {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty({ type: String, isArray: true })
+  appIds: string[];
 }
