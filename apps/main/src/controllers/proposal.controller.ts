@@ -27,6 +27,7 @@ import {
   RemoveAssetsFromWhitelistDto,
   ValidateAddressDto,
   ValidateAddressResDto,
+  ValidateAddressVoteDto,
   VoteProposalDto,
 } from 'libs/dto';
 import { BasePageOptionsDto, PaginationResponseDto } from 'libs/dto/page.dto';
@@ -140,5 +141,13 @@ export class ProposalController {
   @Post('validate-address')
   validateAddress(@Body() dto: ValidateAddressDto) {
     return this.proposalService.validateAddress(dto.address);
+  }
+
+  @ApiOperation({ summary: 'Validate wallet address vote dto' })
+  @ApiBody({ type: ValidateAddressVoteDto })
+  @ApiResponse({ type: ValidateAddressResDto })
+  @Post('validate-address-vote')
+  validateAddressVote(@Body() dto: ValidateAddressVoteDto) {
+    return this.proposalService.validateProposalVote(dto.address, dto.appId);
   }
 }

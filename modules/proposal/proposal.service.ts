@@ -9,7 +9,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import {
   BootstrapProposalDto,
   CreateProposalDto,
+  CreateProposalGroupDto,
+  EditProposalGroupDto,
   ProposalDto,
+  ProposalGroupDto,
   ValidateAddressResDto,
   VoteProposalDto,
 } from 'libs/dto';
@@ -24,6 +27,10 @@ import {
   AssetWhitelist,
   AssetWhitelistDocument,
 } from 'libs/schema/asset-whitelist.schema';
+import {
+  ProposalGroup,
+  ProposalGroupDocument,
+} from 'libs/schema/proposal-group.schema';
 import { Proposal, ProposalDocument } from 'libs/schema/proposal.schema';
 import { AlgorandService } from 'modules/algorand/algorand.service';
 import { Model } from 'mongoose';
@@ -34,6 +41,8 @@ export class ProposalService {
     @InjectModel(Proposal.name) private proposalModel: Model<ProposalDocument>,
     @InjectModel(AssetWhitelist.name)
     private assetWhitelistModel: Model<AssetWhitelistDocument>,
+    @InjectModel(ProposalGroup.name)
+    private proposalGroupModel: Model<ProposalGroupDocument>,
     private readonly algorandService: AlgorandService,
   ) {}
 
@@ -289,5 +298,127 @@ export class ProposalService {
     throw new ForbiddenException(
       'Your address cannot create or vote in a Proposal on DaoWakanda',
     );
+  }
+
+  async createProposalGroup(
+    dto: CreateProposalGroupDto,
+  ): Promise<ProposalGroupDto> {
+    const newGroup: Record<string, boolean> = {};
+
+    for (const appId of dto.appIds) {
+      try {
+        await this.getProposalByAppId(appId);
+        newGroup[appId] = true;
+      } catch (err) {
+        throw new NotFoundException(
+          `No proposal found for the app id ${appId}`,
+        );
+      }
+    }
+
+    const proposalGroup = new this.proposalGroupModel({
+      group: newGroup,
+    });
+
+    await proposalGroup.save();
+
+    return await this.getProposalGroupById(proposalGroup._id.toString());
+  }
+
+  async getProposalGroupById(id: string): Promise<ProposalGroupDto> {
+    const group = await this.proposalGroupModel.findById(id);
+
+    if (!group) {
+      throw new NotFoundException(
+        'No proposal group found with the provided ID',
+      );
+    }
+
+    return {
+      id: group._id.toString(),
+      appIds: Object.keys(group.group),
+    };
+  }
+
+  async replaceProposalGroup(
+    id: string,
+    dto: EditProposalGroupDto,
+  ): Promise<ProposalGroupDto> {
+    const group = await this.getProposalGroupById(id);
+
+    const newGroup: Record<string, boolean> = {};
+
+    for (const appId of dto.appIds) {
+      try {
+        await this.getProposalByAppId(appId);
+        newGroup[appId] = true;
+      } catch (err) {
+        throw new NotFoundException(
+          `No proposal found for the app id ${appId}`,
+        );
+      }
+    }
+
+    await this.proposalGroupModel.findByIdAndUpdate(id, { group: newGroup });
+
+    return {
+      ...group,
+      appIds: Object.keys(newGroup),
+    };
+  }
+
+  async deleteProposalGroup(id: string) {
+    await this.getProposalGroupById(id);
+    await this.proposalGroupModel.deleteOne({ _id: id });
+
+    return { id, message: 'success' };
+  }
+
+  async getAllProposalGroups(): Promise<ProposalGroupDto[]> {
+    const groups = await this.proposalGroupModel.find({});
+
+    return groups.map((group) => ({
+      id: group._id.toString(),
+      appIds: Object.keys(group.group),
+    }));
+  }
+
+  async validateProposalVote(
+    address: string,
+    appId: string,
+  ): Promise<ValidateAddressResDto> {
+    const addressValidity = await this.validateAddress(address);
+    const proposal = await this.getProposalByAppId(appId);
+
+    if (!proposal.ongoing) {
+      throw new ForbiddenException(
+        'This proposal is no longer open for voting',
+      );
+    }
+
+    const allProposalGroups = await this.getAllProposalGroups();
+    const validProposalGroups = allProposalGroups.filter(
+      (proposalGroup) => !!proposalGroup.appIds.includes(appId),
+    );
+
+    const targetAppIdsWithPossibleRepetiion = validProposalGroups
+      .flatMap((value) => value.appIds)
+      .filter((value) => value !== appId);
+
+    const targetAppIds = Array.from(new Set(targetAppIdsWithPossibleRepetiion));
+
+    for (const targetAppId of targetAppIds) {
+      const targetProposal = await this.getProposalByAppId(targetAppId);
+      const targetProposalVoters = targetProposal.registeredVoters;
+      const hasVoted = targetProposalVoters.includes(address);
+
+      if (hasVoted) {
+        throw new ForbiddenException(
+          `You have already voted in the proposal with title '${targetProposal.title}' and app ID ${targetProposal.appId} so you cannot vote for this proposal.`,
+        );
+      }
+    }
+
+    return addressValidity;
   }
 }

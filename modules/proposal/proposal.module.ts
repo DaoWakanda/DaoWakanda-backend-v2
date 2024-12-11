@@ -7,6 +7,10 @@ import {
   AssetWhitelist,
 } from 'libs/schema/asset-whitelist.schema';
 import { AlgorandService } from 'modules/algorand/algorand.service';
+import {
+  ProposalGroup,
+  ProposalroupSchema,
+} from '../../libs/schema/proposal-group.schema';
 
 @Module({
   providers: [ProposalService, AlgorandService],
@@ -14,6 +18,7 @@ import { AlgorandService } from 'modules/algorand/algorand.service';
     MongooseModule.forFeature([
       { name: Proposal.name, schema: ProposalSchema },
       { name: AssetWhitelist.name, schema: AssetWhiteListSchema },
+      { name: ProposalGroup.name, schema: ProposalroupSchema },
     ]),
   ],
   exports: [ProposalService],
