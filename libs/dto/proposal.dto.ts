@@ -132,6 +132,9 @@ export class ValidateAddressVoteDto {
 
   @ApiProperty()
   appId: string;
+
+  @ApiProperty()
+  vote: boolean;
 }
 
 export class ValidateAddressResDto {

@@ -386,6 +386,7 @@ export class ProposalService {
   async validateProposalVote(
     address: string,
     appId: string,
+    vote: boolean,
   ): Promise<ValidateAddressResDto> {
     const addressValidity = await this.validateAddress(address);
     const proposal = await this.getProposalByAppId(appId);
@@ -393,6 +394,15 @@ export class ProposalService {
     if (!proposal.ongoing) {
       throw new ForbiddenException(
         'This proposal is no longer open for voting',
+      );
+    }
+
+    if (
+      proposal.yesVotes.includes(address) ||
+      proposal.noVotes.includes(address)
+    ) {
+      throw new ForbiddenException(
+        'This voter has already voted for this proposal',
       );
     }
 
@@ -409,12 +419,12 @@ export class ProposalService {
 
     for (const targetAppId of targetAppIds) {
       const targetProposal = await this.getProposalByAppId(targetAppId);
-      const targetProposalVoters = targetProposal.registeredVoters;
+      const targetProposalVoters = targetProposal.yesVotes;
       const hasVoted = targetProposalVoters.includes(address);
 
-      if (hasVoted) {
+      if (hasVoted && vote) {
         throw new ForbiddenException(
-          `You have already voted in the proposal with title '${targetProposal.title}' and app ID ${targetProposal.appId} so you cannot vote for this proposal.`,
+          `You have already voted in favor of the proposal with title '${targetProposal.title}' and app ID ${targetProposal.appId} so you cannot vote in favor of this proposal.`,
         );
       }
     }
