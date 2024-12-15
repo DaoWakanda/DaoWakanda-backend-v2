@@ -148,6 +148,10 @@ export class ProposalController {
   @ApiResponse({ type: ValidateAddressResDto })
   @Post('validate-address-vote')
   validateAddressVote(@Body() dto: ValidateAddressVoteDto) {
-    return this.proposalService.validateProposalVote(dto.address, dto.appId);
+    return this.proposalService.validateProposalVote(
+      dto.address,
+      dto.appId,
+      dto.vote,
+    );
   }
 }
