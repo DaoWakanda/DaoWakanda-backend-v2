@@ -158,11 +158,26 @@ export class TriviaController {
     description: "Submission isn't eligible for disbursement.",
   })
   @UseGuards(AdminJwtAuthGuard)
-  @Patch(':submissionId/disburse')
+  @Patch(':submissionId/disburse/:contractId')
   async disburseAlgos(
     @Param('submissionId') submissionId: string,
+    @Param('contractId') contractId: number,
     @Query() status: DisbursementStatusDto,
   ) {
-    return this.triviaService.disbursedAlgos(submissionId, status.status);
+    return this.triviaService.disbursedAlgos(
+      contractId,
+      submissionId,
+      status.status,
+    );
+  }
+
+  @ApiOperation({ summary: 'Claim algos' })
+  @ApiResponse({ status: 200, description: 'Algos claimed successfully.' })
+  @Patch(':submissionId/claim/:contractId')
+  async claimBounty(
+    @Param('submissionId') submissionId: string,
+    @Param('contractId') contractId: number,
+  ) {
+    return this.triviaService.claimBounty(submissionId, contractId);
   }
 }

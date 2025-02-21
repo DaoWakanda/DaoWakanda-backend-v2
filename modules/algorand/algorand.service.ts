@@ -52,4 +52,29 @@ export class AlgorandService {
       return false;
     }
   }
+
+  async isAmountDisbursed(
+    contractId: number,
+    addr: string,
+    amount: number,
+  ): Promise<boolean> {
+    const algodClient = this.algodClient;
+
+    const boxName = Buffer.from(addr);
+
+    try {
+      const boxResponse = await algodClient
+        .getApplicationBoxByName(contractId, boxName)
+        .do();
+
+      const decodedValue = new TextDecoder().decode(boxResponse.value);
+
+      console.log('Decoded Value:', decodedValue);
+
+      return Number(decodedValue) >= amount;
+    } catch (error) {
+      console.error('Error fetching box value:', error);
+      return false;
+    }
+  }
 }

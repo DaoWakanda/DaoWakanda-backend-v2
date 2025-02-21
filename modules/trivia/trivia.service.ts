@@ -40,6 +40,7 @@ import { toLeaderBoard } from 'libs/mapper/user.mapper';
 import { Submission } from 'libs/schema/submission.schema';
 import { Trivia } from 'libs/schema/trivia.schema';
 import { createPageOptionFallBack } from 'libs/utils/createPageOptionFallBack';
+import { AlgorandService } from 'modules/algorand/algorand.service';
 import { UserService } from 'modules/user/user.service';
 import { Model } from 'mongoose';
 
@@ -53,6 +54,8 @@ export class TriviaService {
     private readonly submissionRepo: Model<Submission>,
 
     private readonly userService: UserService,
+
+    private readonly algorandService: AlgorandService,
   ) {}
 
   async createTrivia(triviaDto: CreateTriviaDto) {
@@ -347,7 +350,11 @@ export class TriviaService {
     };
   }
 
-  async disbursedAlgos(submissionId: string, status: DISBURSED_STATUS) {
+  async disbursedAlgos(
+    contractId: number,
+    submissionId: string,
+    status: DISBURSED_STATUS,
+  ) {
     const submission = await this.submissionRepo.findById(submissionId).exec();
 
     if (!submission) {
@@ -359,6 +366,22 @@ export class TriviaService {
     if (submission.submissionStatus === SUBMISSION_STATUS.REJECTED) {
       throw new ConflictException(
         `Submission with ID ${submissionId} isn't eligible for disbursement`,
+      );
+    }
+
+    const user = await this.userService.findUserById(submission.userId);
+
+    const trivia = await this.triviaRepo.findById(submission.triviaId).exec();
+
+    const isAmountDisbursed = await this.algorandService.isAmountDisbursed(
+      contractId,
+      user.walletAddress,
+      trivia.prize,
+    );
+
+    if (!isAmountDisbursed) {
+      throw new ConflictException(
+        'The specified amount has not been disbursed.',
       );
     }
 
@@ -416,6 +439,40 @@ export class TriviaService {
         message: `Failed to award algos to developer for submission ID ${submission._id}. Error: ${error.message}`,
       };
     }
+  }
+
+  async claimAlgos(submissionId: string, contractId: number) {
+    const submission = await this.submissionRepo.findById(submissionId).exec();
+
+    if (!submission) {
+      throw new NotFoundException(
+        `Submission with ID ${submissionId} was not found`,
+      );
+    }
+
+    if (submission.disbursementStatus !== DISBURSEMENT_STATUS.DISBURSED) {
+      throw new ConflictException(
+        `Submission with ID ${submissionId} isn't eligible for claim`,
+      );
+    }
+
+    await this.submissionRepo
+      .findOneAndUpdate(
+        { _id: submission._id },
+        {
+          disbursementStatus: DISBURSEMENT_STATUS.CLAIMED,
+        },
+        {
+          new: true,
+        },
+      )
+      .lean()
+      .exec();
+
+    return {
+      status: 200,
+      message: 'Claim was successfully',
+    };
   }
 
   async showLeaderboard(): Promise<LeaderboardResponseDto[]> {
