@@ -162,22 +162,14 @@ export class TriviaController {
   async disburseAlgos(
     @Param('submissionId') submissionId: string,
     @Param('contractId') contractId: number,
-    @Query() status: DisbursementStatusDto,
   ) {
-    return this.triviaService.disbursedAlgos(
-      contractId,
-      submissionId,
-      status.status,
-    );
+    return this.triviaService.disbursedAlgos(contractId, submissionId);
   }
 
   @ApiOperation({ summary: 'Claim algos' })
   @ApiResponse({ status: 200, description: 'Algos claimed successfully.' })
-  @Patch(':submissionId/claim/:contractId')
-  async claimBounty(
-    @Param('submissionId') submissionId: string,
-    @Param('contractId') contractId: number,
-  ) {
-    return this.triviaService.claimBounty(submissionId, contractId);
+  @Patch(':submissionId/claim')
+  async claimBounty(@Param('submissionId') submissionId: string) {
+    return this.triviaService.claimAlgos(submissionId);
   }
 }

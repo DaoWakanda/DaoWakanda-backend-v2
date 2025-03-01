@@ -350,11 +350,7 @@ export class TriviaService {
     };
   }
 
-  async disbursedAlgos(
-    contractId: number,
-    submissionId: string,
-    status: DISBURSED_STATUS,
-  ) {
+  async disbursedAlgos(contractId: number, submissionId: string) {
     const submission = await this.submissionRepo.findById(submissionId).exec();
 
     if (!submission) {
@@ -389,10 +385,7 @@ export class TriviaService {
       .findOneAndUpdate(
         { _id: submission._id },
         {
-          disbursementStatus:
-            status === DISBURSED_STATUS.DISBURSED
-              ? DISBURSEMENT_STATUS.DISBURSED
-              : DISBURSEMENT_STATUS.PENDING,
+          disbursementStatus: DISBURSED_STATUS.DISBURSED,
         },
         {
           new: true,
@@ -401,18 +394,9 @@ export class TriviaService {
       .lean()
       .exec();
 
-    if (status === DISBURSED_STATUS.DISBURSED) {
-      const result = await this.awardAlgosToDeveloper(updatedSubmission);
+    const result = await this.awardAlgosToDeveloper(updatedSubmission);
 
-      return result;
-    }
-
-    if (status === DISBURSED_STATUS.PENDING) {
-      return {
-        message:
-          'The disbursement is currently pending. Please check back later.',
-      };
-    }
+    return result;
   }
 
   async awardAlgosToDeveloper(submission: Submission & IdObject) {
@@ -441,7 +425,7 @@ export class TriviaService {
     }
   }
 
-  async claimAlgos(submissionId: string, contractId: number) {
+  async claimAlgos(submissionId: string) {
     const submission = await this.submissionRepo.findById(submissionId).exec();
 
     if (!submission) {
@@ -531,6 +515,7 @@ export class TriviaService {
 
         return {
           developer: `${user.firstName} ${user.lastName}`,
+          wallet: user.walletAddress,
           ...submissionResponse,
         };
       }),
