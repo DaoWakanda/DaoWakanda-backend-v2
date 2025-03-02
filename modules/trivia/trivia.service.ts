@@ -544,4 +544,36 @@ export class TriviaService {
 
     return winnersByTrivia;
   }
+
+  async getUserUnclaimedBounty(
+    address: string,
+  ): Promise<SubmissionResponseDto[]> {
+    const user = await this.userService.findUserByWalletAddress(address);
+
+    const submissions = await this.submissionRepo
+      .find({
+        userId: user.id,
+        disbursementStatus: DISBURSEMENT_STATUS.DISBURSED,
+      })
+      .lean()
+      .exec();
+
+    const userSubmissions = await Promise.all(
+      submissions
+        .filter((submission) => !!submission.smartContractId)
+        .map(async (submission) => {
+          const trivia = await this.getTriviaById(submission.triviaId);
+          const submissionResponse = toSubmissionResponse(submission);
+
+          return {
+            title: trivia.title || '',
+            smartContractId: submission.smartContractId,
+            bounty: trivia.prize,
+            ...submissionResponse,
+          };
+        }),
+    );
+
+    return userSubmissions;
+  }
 }

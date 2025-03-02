@@ -164,11 +164,4 @@ export class TriviaController {
   ) {
     return this.triviaService.disburseAlgos(contractId, submissionId);
   }
-
-  @ApiOperation({ summary: 'Claim algos' })
-  @ApiResponse({ status: 200, description: 'Algos claimed successfully.' })
-  @Patch(':submissionId/claim')
-  async claimBounty(@Param('submissionId') submissionId: string) {
-    return this.triviaService.claimAlgos(submissionId);
-  }
 }
