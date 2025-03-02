@@ -40,6 +40,7 @@ import { toLeaderBoard } from 'libs/mapper/user.mapper';
 import { Submission } from 'libs/schema/submission.schema';
 import { Trivia } from 'libs/schema/trivia.schema';
 import { createPageOptionFallBack } from 'libs/utils/createPageOptionFallBack';
+import { AlgorandService } from 'modules/algorand/algorand.service';
 import { UserService } from 'modules/user/user.service';
 import { Model } from 'mongoose';
 
@@ -53,6 +54,8 @@ export class TriviaService {
     private readonly submissionRepo: Model<Submission>,
 
     private readonly userService: UserService,
+
+    private readonly algorandService: AlgorandService,
   ) {}
 
   async createTrivia(triviaDto: CreateTriviaDto) {
@@ -347,7 +350,7 @@ export class TriviaService {
     };
   }
 
-  async disbursedAlgos(submissionId: string, status: DISBURSED_STATUS) {
+  async disburseAlgos(contractId: number, submissionId: string) {
     const submission = await this.submissionRepo.findById(submissionId).exec();
 
     if (!submission) {
@@ -362,14 +365,28 @@ export class TriviaService {
       );
     }
 
+    const user = await this.userService.findUserById(submission.userId);
+
+    const trivia = await this.triviaRepo.findById(submission.triviaId).exec();
+
+    const isAmountDisbursed = await this.algorandService.isAmountDisbursed(
+      contractId,
+      user.walletAddress,
+      trivia.prize,
+    );
+
+    if (!isAmountDisbursed) {
+      throw new ConflictException(
+        'The specified amount has not been disbursed.',
+      );
+    }
+
     const updatedSubmission = await this.submissionRepo
       .findOneAndUpdate(
         { _id: submission._id },
         {
-          disbursementStatus:
-            status === DISBURSED_STATUS.DISBURSED
-              ? DISBURSEMENT_STATUS.DISBURSED
-              : DISBURSEMENT_STATUS.PENDING,
+          disbursementStatus: DISBURSED_STATUS.DISBURSED,
+          smartContractId: contractId,
         },
         {
           new: true,
@@ -378,18 +395,9 @@ export class TriviaService {
       .lean()
       .exec();
 
-    if (status === DISBURSED_STATUS.DISBURSED) {
-      const result = await this.awardAlgosToDeveloper(updatedSubmission);
+    const result = await this.awardAlgosToDeveloper(updatedSubmission);
 
-      return result;
-    }
-
-    if (status === DISBURSED_STATUS.PENDING) {
-      return {
-        message:
-          'The disbursement is currently pending. Please check back later.',
-      };
-    }
+    return result;
   }
 
   async awardAlgosToDeveloper(submission: Submission & IdObject) {
@@ -416,6 +424,40 @@ export class TriviaService {
         message: `Failed to award algos to developer for submission ID ${submission._id}. Error: ${error.message}`,
       };
     }
+  }
+
+  async claimAlgos(submissionId: string) {
+    const submission = await this.submissionRepo.findById(submissionId).exec();
+
+    if (!submission) {
+      throw new NotFoundException(
+        `Submission with ID ${submissionId} was not found`,
+      );
+    }
+
+    if (submission.disbursementStatus !== DISBURSEMENT_STATUS.DISBURSED) {
+      throw new ConflictException(
+        `Submission with ID ${submissionId} isn't eligible for claim`,
+      );
+    }
+
+    await this.submissionRepo
+      .findOneAndUpdate(
+        { _id: submission._id },
+        {
+          disbursementStatus: DISBURSEMENT_STATUS.CLAIMED,
+        },
+        {
+          new: true,
+        },
+      )
+      .lean()
+      .exec();
+
+    return {
+      status: 200,
+      message: 'Claim was successfully',
+    };
   }
 
   async showLeaderboard(): Promise<LeaderboardResponseDto[]> {
@@ -462,6 +504,8 @@ export class TriviaService {
   }
 
   async getSubmissionsByTrivia(triviaId: string) {
+    const trivia = await this.getTriviaById(triviaId);
+
     const submissions = await this.submissionRepo
       .find({ triviaId })
       .lean()
@@ -474,6 +518,8 @@ export class TriviaService {
 
         return {
           developer: `${user.firstName} ${user.lastName}`,
+          walletAddress: user.walletAddress,
+          bounty: trivia.prize,
           ...submissionResponse,
         };
       }),
@@ -497,5 +543,37 @@ export class TriviaService {
     );
 
     return winnersByTrivia;
+  }
+
+  async getUserUnclaimedBounty(
+    address: string,
+  ): Promise<SubmissionResponseDto[]> {
+    const user = await this.userService.findUserByWalletAddress(address);
+
+    const submissions = await this.submissionRepo
+      .find({
+        userId: user.id,
+        disbursementStatus: DISBURSEMENT_STATUS.DISBURSED,
+      })
+      .lean()
+      .exec();
+
+    const userSubmissions = await Promise.all(
+      submissions
+        .filter((submission) => !!submission.smartContractId)
+        .map(async (submission) => {
+          const trivia = await this.getTriviaById(submission.triviaId);
+          const submissionResponse = toSubmissionResponse(submission);
+
+          return {
+            title: trivia.title || '',
+            smartContractId: submission.smartContractId,
+            bounty: trivia.prize,
+            ...submissionResponse,
+          };
+        }),
+    );
+
+    return userSubmissions;
   }
 }

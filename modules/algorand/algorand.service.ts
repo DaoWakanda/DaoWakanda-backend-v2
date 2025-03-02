@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Algodv2 } from 'algosdk';
+import algosdk, { Algodv2 } from 'algosdk';
 import { env } from 'libs/utils/env';
 
 @Injectable()
@@ -49,6 +49,30 @@ export class AlgorandService {
       return !!res;
     } catch (e) {
       this.logger.error(`Error validating asset with assetId: ${assetId}`, e);
+      return false;
+    }
+  }
+
+  async isAmountDisbursed(
+    contractId: number,
+    addr: string,
+    amount: number,
+  ): Promise<boolean> {
+    const algodClient = this.algodClient;
+
+    try {
+      const boxResponse = await algodClient
+        .getApplicationBoxByName(
+          contractId,
+          algosdk.decodeAddress(addr).publicKey,
+        )
+        .do();
+
+      const decodedValue = algosdk.decodeUint64(boxResponse.value);
+
+      return Number(decodedValue) >= amount * 10 ** 6;
+    } catch (error) {
+      console.error('Error fetching box value:', error);
       return false;
     }
   }

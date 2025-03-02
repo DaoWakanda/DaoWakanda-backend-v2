@@ -27,7 +27,6 @@ import {
 } from 'libs/dto/page.dto';
 import {
   CreateTriviaDto,
-  DisbursementStatusDto,
   ReviewStatusDto,
   SubmissionResponseDto,
   TriviaResponseDto,
@@ -158,11 +157,11 @@ export class TriviaController {
     description: "Submission isn't eligible for disbursement.",
   })
   @UseGuards(AdminJwtAuthGuard)
-  @Patch(':submissionId/disburse')
+  @Patch(':submissionId/disburse/:contractId')
   async disburseAlgos(
     @Param('submissionId') submissionId: string,
-    @Query() status: DisbursementStatusDto,
+    @Param('contractId') contractId: number,
   ) {
-    return this.triviaService.disbursedAlgos(submissionId, status.status);
+    return this.triviaService.disburseAlgos(contractId, submissionId);
   }
 }
