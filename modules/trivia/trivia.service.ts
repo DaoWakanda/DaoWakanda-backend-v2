@@ -350,7 +350,7 @@ export class TriviaService {
     };
   }
 
-  async disbursedAlgos(contractId: number, submissionId: string) {
+  async disburseAlgos(contractId: number, submissionId: string) {
     const submission = await this.submissionRepo.findById(submissionId).exec();
 
     if (!submission) {
@@ -386,6 +386,7 @@ export class TriviaService {
         { _id: submission._id },
         {
           disbursementStatus: DISBURSED_STATUS.DISBURSED,
+          smartContractId: contractId,
         },
         {
           new: true,
@@ -503,6 +504,8 @@ export class TriviaService {
   }
 
   async getSubmissionsByTrivia(triviaId: string) {
+    const trivia = await this.getTriviaById(triviaId);
+
     const submissions = await this.submissionRepo
       .find({ triviaId })
       .lean()
@@ -515,7 +518,8 @@ export class TriviaService {
 
         return {
           developer: `${user.firstName} ${user.lastName}`,
-          wallet: user.walletAddress,
+          walletAddress: user.walletAddress,
+          bounty: trivia.prize,
           ...submissionResponse,
         };
       }),

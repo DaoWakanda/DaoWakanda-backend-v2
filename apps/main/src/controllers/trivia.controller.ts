@@ -27,7 +27,6 @@ import {
 } from 'libs/dto/page.dto';
 import {
   CreateTriviaDto,
-  DisbursementStatusDto,
   ReviewStatusDto,
   SubmissionResponseDto,
   TriviaResponseDto,
@@ -163,7 +162,7 @@ export class TriviaController {
     @Param('submissionId') submissionId: string,
     @Param('contractId') contractId: number,
   ) {
-    return this.triviaService.disbursedAlgos(contractId, submissionId);
+    return this.triviaService.disburseAlgos(contractId, submissionId);
   }
 
   @ApiOperation({ summary: 'Claim algos' })
