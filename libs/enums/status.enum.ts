@@ -20,6 +20,7 @@ export enum DISBURSEMENT_STATUS {
   DISBURSED = 'disbursed',
   NOT_ELIGIBLE = 'not_eligible',
   ELIGIBLE = 'eligible',
+  CLAIMED = 'claimed',
 }
 
 export enum DISBURSED_STATUS {

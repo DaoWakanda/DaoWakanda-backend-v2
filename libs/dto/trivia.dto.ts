@@ -169,4 +169,10 @@ export class SubmissionResponseDto {
   @ApiProperty({ description: 'disbursement status' })
   @IsString()
   disbursementStatus: string;
+
+  @ApiProperty({ description: 'smart contract id' })
+  smartContractId?: number;
+
+  @ApiProperty({ description: 'bounty' })
+  bounty?: number;
 }

@@ -4,6 +4,7 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   UseInterceptors,
@@ -14,6 +15,7 @@ import { PageOptionsDto, PaginationResponseDto } from 'libs/dto/page.dto';
 import {
   AnswerDto,
   LeaderboardResponseDto,
+  SubmissionResponseDto,
   TriviaResponseDto,
 } from 'libs/dto/trivia.dto';
 import { TriviaService } from 'modules/trivia/trivia.service';
@@ -91,5 +93,23 @@ export class UserTriviaController {
   @Get('winners-by-trivia/:id')
   async getWinnersByTrivia(@Param('id') id: string) {
     return this.triviaService.getWinnersByTrivia(id);
+  }
+
+  @ApiOperation({ summary: 'Get user unclaimed bounty' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of all unclaimed bounty.',
+    type: [SubmissionResponseDto],
+  })
+  @Get('unclaimed-bounty/:address')
+  async getUserUnclaimedBounty(@Param('address') address: string) {
+    return this.triviaService.getUserUnclaimedBounty(address);
+  }
+
+  @ApiOperation({ summary: 'Claim algos' })
+  @ApiResponse({ status: 200, description: 'Algos claimed successfully.' })
+  @Patch(':submissionId/claim')
+  async claimBounty(@Param('submissionId') submissionId: string) {
+    return this.triviaService.claimAlgos(submissionId);
   }
 }

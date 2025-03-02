@@ -21,6 +21,10 @@ export class Submission extends Base {
   githubRepoLink: string;
 
   @ApiProperty({})
+  @Prop({ required: false, default: null })
+  smartContractId: number;
+
+  @ApiProperty({})
   @Prop({ type: String, default: SUBMISSION_STATUS.PENDING })
   submissionStatus: SUBMISSION_STATUS;
 
