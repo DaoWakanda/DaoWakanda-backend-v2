@@ -29,6 +29,7 @@
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^7.4.2",
+    "@noble/curves": "^1.9.1",
     "algosdk": "^3.0.0",
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
@@ -92,5 +93,6 @@
       "^@app/auth(|/.*)$": "<rootDir>/libs/auth/src/$1",
       "^@app/modules(|/.*)$": "<rootDir>/libs/modules/src/$1"
     }
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

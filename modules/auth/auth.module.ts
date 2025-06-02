@@ -7,6 +7,7 @@ import { BcryptService } from 'libs/injectables';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from 'libs/constants/jwt-constants';
+import { UserModule } from 'modules/user/user.module';
 
 @Module({
   providers: [AuthService, LocalAdminStrategy, JwtAdminStrategy, BcryptService],
@@ -17,6 +18,7 @@ import { jwtConstants } from 'libs/constants/jwt-constants';
       secret: jwtConstants.adminSecret,
       signOptions: { expiresIn: '86400s' },
     }),
+    UserModule,
   ],
   exports: [AuthService],
 })
