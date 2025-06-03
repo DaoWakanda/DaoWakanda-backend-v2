@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { jwtConstants } from 'libs/constants/jwt-constants';
 import { AuthService } from 'modules/auth/auth.service';
+import { UserResponseDto } from 'libs/dto';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -14,14 +15,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: any) {
+  async validate(payload: Partial<UserResponseDto>) {
     try {
-      const admin = await this.authService.validateAuthTransaction(
-        payload.address,
-        payload.authTxnBase64,
+      const user = await this.authService.getUserByAddress(
+        payload.walletAddress,
       );
-      return admin;
+      return user;
     } catch (error) {
+      console.error('JWT validation error:', error);
       throw new UnauthorizedException();
     }
   }

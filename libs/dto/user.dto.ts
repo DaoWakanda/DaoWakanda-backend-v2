@@ -1,5 +1,36 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsOptional, IsString } from 'class-validator';
+
+export class CreateUserV1Dto {
+  @ApiProperty()
+  @IsString()
+  firstName: string;
+
+  @ApiProperty()
+  @IsString()
+  lastName: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsEmail()
+  email: string;
+
+  @ApiProperty()
+  @IsString()
+  country: string;
+
+  @ApiProperty()
+  @IsString()
+  walletAddress: string;
+
+  @ApiProperty()
+  @IsString()
+  stateOfResidence: string;
+
+  @ApiProperty()
+  @IsString()
+  githubLink: string;
+}
 
 export class CreateUserDto {
   @ApiProperty()
@@ -17,10 +48,6 @@ export class CreateUserDto {
 
   @ApiProperty()
   @IsString()
-  image: string;
-
-  @ApiProperty()
-  @IsString()
   country: string;
 
   @ApiProperty()
@@ -30,10 +57,6 @@ export class CreateUserDto {
   @ApiProperty()
   @IsString()
   githubLink: string;
-
-  @ApiProperty()
-  @IsNotEmpty()
-  walletAddress: string;
 }
 
 export class UpdateUserDto {
@@ -46,11 +69,6 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   lastName?: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  image?: string;
 
   @ApiProperty()
   @IsString()

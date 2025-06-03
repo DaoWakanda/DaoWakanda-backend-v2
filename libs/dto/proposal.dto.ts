@@ -102,6 +102,33 @@ export class CreateProposalDto {
   creator: string;
 }
 
+export class CreateProposalDtoV2 {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  appId: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  title: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  description: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  startDate: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  endDate: number;
+}
+
 export class BootstrapProposalDto {
   @ApiProperty()
   @IsString()
@@ -121,6 +148,13 @@ export class VoteProposalDto {
   voterAddress: string;
 }
 
+export class VoteProposalDtoV2 {
+  @ApiProperty()
+  @IsBoolean()
+  @IsNotEmpty()
+  vote: boolean;
+}
+
 export class ValidateAddressDto {
   @ApiProperty()
   address: string;
@@ -130,6 +164,14 @@ export class ValidateAddressVoteDto {
   @ApiProperty()
   address: string;
 
+  @ApiProperty()
+  appId: string;
+
+  @ApiProperty()
+  vote: boolean;
+}
+
+export class ValidateAddressVoteDtoV2 {
   @ApiProperty()
   appId: string;
 

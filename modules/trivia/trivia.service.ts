@@ -460,6 +460,18 @@ export class TriviaService {
     };
   }
 
+  async getSubmissionById(submissionId: string) {
+    const submission = await this.submissionRepo.findById(submissionId).exec();
+
+    if (!submission) {
+      throw new NotFoundException(
+        `Submission with ID ${submissionId} was not found`,
+      );
+    }
+
+    return toSubmissionResponse(submission);
+  }
+
   async showLeaderboard(): Promise<LeaderboardResponseDto[]> {
     const users = await this.userService.getUsers();
 
@@ -467,13 +479,6 @@ export class TriviaService {
 
     return leaderboard;
   }
-
-  // private hasTimeElapsed(createdAt: Date, duration: number): boolean {
-  //   const currentTime = new Date();
-  //   const expirationTime = new Date(createdAt.getTime() + duration * 1000);
-
-  //   return currentTime >= expirationTime;
-  // }
 
   private hasTimeElapsed(endTimeStamp: number): boolean {
     const currentTime = Date.now();

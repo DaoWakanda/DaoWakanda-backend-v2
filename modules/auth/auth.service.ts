@@ -10,6 +10,7 @@ import {
   DeleteAdminDto,
 } from 'libs/dto/auth.dto';
 import { UserService } from 'modules/user/user.service';
+import { UserResponseDto } from 'libs/dto';
 
 @Injectable()
 export class AuthService {
@@ -52,7 +53,7 @@ export class AuthService {
   async validateAuthTransaction(
     address: string,
     txnBase64: string,
-  ): Promise<DaowakandaUserDto> {
+  ): Promise<Partial<UserResponseDto>> {
     try {
       const txnByteArray = new Uint8Array(Buffer.from(txnBase64, 'base64'));
       const decodedTxn = algosdk.decodeSignedTransaction(txnByteArray);
@@ -83,14 +84,25 @@ export class AuthService {
       } else {
         const user = await this.userService.findUserByWalletAddress(address);
 
+        if (user) return user;
+
         return {
-          address,
-          user,
+          walletAddress: address,
         };
       }
     } catch (error) {
       this.logger.error(error);
       throw new UnauthorizedException('Invalid auth transaction');
     }
+  }
+
+  async getUserByAddress(address: string): Promise<Partial<UserResponseDto>> {
+    const user = await this.userService.findUserByWalletAddress(address);
+    if (!user) {
+      return {
+        walletAddress: address,
+      };
+    }
+    return user;
   }
 }
