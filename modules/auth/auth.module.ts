@@ -7,9 +7,19 @@ import { BcryptService } from 'libs/injectables';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from 'libs/constants/jwt-constants';
+import { UserModule } from 'modules/user/user.module';
+import { LocalStrategy } from 'libs/guards/local/local.strategy';
+import { JwtStrategy } from 'libs/guards/jwt/jwt.strategy';
 
 @Module({
-  providers: [AuthService, LocalAdminStrategy, JwtAdminStrategy, BcryptService],
+  providers: [
+    AuthService,
+    LocalAdminStrategy,
+    JwtAdminStrategy,
+    BcryptService,
+    LocalStrategy,
+    JwtStrategy,
+  ],
   imports: [
     AdminModule,
     PassportModule,
@@ -17,6 +27,7 @@ import { jwtConstants } from 'libs/constants/jwt-constants';
       secret: jwtConstants.adminSecret,
       signOptions: { expiresIn: '86400s' },
     }),
+    UserModule,
   ],
   exports: [AuthService],
 })

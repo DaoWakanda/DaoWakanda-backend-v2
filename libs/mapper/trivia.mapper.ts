@@ -30,5 +30,6 @@ export const toSubmissionResponse = (submission: Submission & IdObject) => {
     submissionStatus: submission.submissionStatus,
     disbursementStatus: submission.disbursementStatus,
     createdAt: submission.createdAt,
+    userId: submission.userId,
   };
 };
