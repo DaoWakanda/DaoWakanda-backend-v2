@@ -6,7 +6,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { AdminDto } from 'libs/dto';
 import { BcryptService } from 'libs/injectables';
-import { Admin, AdminDocument } from 'libs/schema/admin.schema';
+import { AdminDocument, Admin } from '../../libs/schema/admin.schema';
 import { Model } from 'mongoose';
 
 @Injectable()

@@ -1,10 +1,15 @@
 import { Module } from '@nestjs/common';
-import { AdminService } from 'modules/admin/admin.service';
+import { MongooseModule } from '@nestjs/mongoose';
+import { env } from 'libs/utils/env';
+import { AdminModule as AdminServiceModule } from 'modules/admin/admin.module';
 import { AdminController } from './controllers/admin.controller';
 
 @Module({
-  imports: [],
+  imports: [
+    MongooseModule.forRoot(env.MONGODB_URI, { dbName: env.MONGODB_DATABASE }),
+    AdminServiceModule,
+  ],
   controllers: [AdminController],
-  providers: [AdminService],
+  providers: [],
 })
 export class AdminModule {}
