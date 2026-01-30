@@ -7,9 +7,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CreateAdminDto, DeleteAdminDto, LogInDto } from 'libs/dto/auth.dto';
+import {
+  AuthTxnLoginDto,
+  CreateAdminDto,
+  DeleteAdminDto,
+  LogInDto,
+} from 'libs/dto/auth.dto';
 import { AdminJwtAuthGuard } from 'libs/guards/jwt/admin-jwt-auth.guard';
 import { AdminLocalAuthGuard } from 'libs/guards/local/admin-local-auth.guard';
+import { LocalAuthGuard } from 'libs/guards/local/local-auth-guard';
 import { AuthService } from 'modules/auth/auth.service';
 
 @ApiTags('Authentication Manager')
@@ -42,5 +48,14 @@ export class AuthController {
   @Delete('admin')
   deleteAdmin(@Body() dto: DeleteAdminDto) {
     return this.authService.deleteAdmin(dto);
+  }
+
+  @ApiOperation({ summary: 'Sign into user account' })
+  @ApiBearerAuth('Bearer')
+  @ApiBody({ type: AuthTxnLoginDto })
+  @UseGuards(LocalAuthGuard)
+  @Post('login')
+  logInUser(@Request() req: any) {
+    return this.authService.loginUser(req.user);
   }
 }

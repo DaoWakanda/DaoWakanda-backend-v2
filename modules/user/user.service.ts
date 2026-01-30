@@ -23,13 +23,19 @@ export class UserService {
     private readonly fileUploadService: FileUploadService,
   ) {}
 
-  async createUser(data: CreateUserDto) {
+  async createUser(data: CreateUserDto & { walletAddress: string }) {
     const existingUser = await this.findUserByWalletAddress(data.walletAddress);
 
     if (existingUser) {
       throw new ConflictException(
         'User with that wallet address already exists.',
       );
+    }
+
+    const existingEmail = await this.findUserByEmail(data.email);
+
+    if (existingEmail) {
+      throw new ConflictException('User with that email already exists.');
     }
 
     const createdUser = new this.userRepo(data);
@@ -46,6 +52,16 @@ export class UserService {
       .findOne({ walletAddress: address })
       .lean()
       .exec();
+
+    if (user) {
+      const userResponse = toUserResponse(user);
+      return userResponse;
+    }
+
+    return null;
+  }
+  async findUserByEmail(email: string) {
+    const user = await this.userRepo.findOne({ email }).lean().exec();
 
     if (user) {
       const userResponse = toUserResponse(user);
