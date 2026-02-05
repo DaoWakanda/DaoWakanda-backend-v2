@@ -30,7 +30,10 @@ import {
   ValidateAddressVoteDto,
   VoteProposalDto,
 } from 'libs/dto';
-import { BasePageOptionsDto, PaginationResponseDto } from 'libs/dto/page.dto';
+import {
+  PaginationResponseDto,
+  ProposalPageOptionsDto,
+} from 'libs/dto/page.dto';
 import { AdminJwtAuthGuard } from 'libs/guards/jwt/admin-jwt-auth.guard';
 import { ProposalService } from 'modules/proposal/proposal.service';
 
@@ -88,7 +91,7 @@ export class ProposalController {
   @ApiResponse({ type: PaginationResponseDto<ProposalDto> })
   @UsePipes(new ValidationPipe({ transform: true }))
   @Get('all')
-  getAllProposal(@Query() options: BasePageOptionsDto) {
+  getAllProposal(@Query() options: ProposalPageOptionsDto) {
     return this.proposalService.getAllProposals(options);
   }
 

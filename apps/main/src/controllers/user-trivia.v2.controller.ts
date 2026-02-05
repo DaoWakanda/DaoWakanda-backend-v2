@@ -18,7 +18,11 @@ import {
   ApiParam,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { AnswerDto, SubmissionResponseDto } from 'libs/dto/trivia.dto';
+import {
+  AnswerDto,
+  LeaderboardResponseDto,
+  SubmissionResponseDto,
+} from 'libs/dto/trivia.dto';
 import { JwtAuthGuard } from 'libs/guards/jwt/jwt-auth.guard';
 import { TriviaService } from 'modules/trivia/trivia.service';
 
@@ -33,11 +37,6 @@ export class UserTriviaControllerV2 {
   @ApiOperation({ summary: 'Submit trivia answer' })
   @ApiParam({
     name: 'triviaId',
-    required: true,
-    description: '',
-  })
-  @ApiParam({
-    name: 'userId',
     required: true,
     description: '',
   })
@@ -89,5 +88,16 @@ export class UserTriviaControllerV2 {
     }
 
     return this.triviaService.claimAlgos(submissionId);
+  }
+
+  @ApiOperation({ summary: 'Get trivia leaderboard' })
+  @ApiResponse({
+    status: 200,
+    description: 'Trivia leaderboard displayed successfully',
+    type: [LeaderboardResponseDto],
+  })
+  @Get(':triviaId/leaderboard')
+  async getTriviaLeaderboard(@Param('triviaId') triviaId: string) {
+    return this.triviaService.getTriviaLeaderboard(triviaId);
   }
 }

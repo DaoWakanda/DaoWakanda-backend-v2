@@ -581,4 +581,31 @@ export class TriviaService {
 
     return userSubmissions;
   }
+
+  async getTriviaLeaderboard(
+    triviaId: string,
+  ): Promise<LeaderboardResponseDto[]> {
+    const trivia = await this.getTriviaById(triviaId);
+
+    if (!trivia) {
+      throw new NotFoundException('Trivia not found.');
+    }
+
+    const submissions = await this.submissionRepo
+      .find({ triviaId, submissionStatus: SUBMISSION_STATUS.APPROVED })
+      .lean()
+      .exec();
+
+    const leaderboard = await Promise.all(
+      submissions.map(async (submission) => {
+        const user = await this.userService.findUserById(submission.userId);
+        return {
+          name: `${user.firstName} ${user.lastName}`,
+          totalAlgos: trivia.prize,
+        };
+      }),
+    );
+
+    return leaderboard;
+  }
 }

@@ -17,11 +17,12 @@ import {
   VoteProposalDto,
 } from 'libs/dto';
 import {
-  BasePageOptionsDto,
   PageMetaDto,
   PaginationResponseDto,
+  ProposalPageOptionsDto,
 } from 'libs/dto/page.dto';
 import { Order } from 'libs/enums/order.enum';
+import { PROPOSAL_STATUS } from 'libs/enums/status.enum';
 import { toProposal } from 'libs/mapper/proposal.mapper';
 import {
   AssetWhitelist,
@@ -152,22 +153,59 @@ export class ProposalService {
   }
 
   async getAllProposals(
-    options: BasePageOptionsDto,
+    options: ProposalPageOptionsDto,
   ): Promise<PaginationResponseDto<ProposalDto>> {
-    const { order, numOfItemsPerPage, skip } = options;
+    const { order, numOfItemsPerPage, skip, status } = options;
 
     if (order !== Order.ASC && order !== Order.DESC) {
       throw new BadRequestException('Order must be either "asc" or "desc"');
     }
 
+    const currentTime = Date.now();
+    let filter: any = {};
+
+    if (status) {
+      switch (status) {
+        case PROPOSAL_STATUS.IN_PROGRESS:
+          filter = {
+            endDate: { $gt: currentTime },
+          };
+          break;
+        case PROPOSAL_STATUS.APPROVED:
+          filter = {
+            endDate: { $lte: currentTime },
+            $expr: {
+              $gt: [{ $size: '$yesVotes' }, { $size: '$noVotes' }],
+            },
+          };
+          break;
+        case PROPOSAL_STATUS.DENIED:
+          filter = {
+            endDate: { $lte: currentTime },
+            $expr: {
+              $or: [
+                { $gt: [{ $size: '$noVotes' }, { $size: '$yesVotes' }] },
+                {
+                  $and: [
+                    { $eq: [{ $size: '$yesVotes' }, 0] },
+                    { $eq: [{ $size: '$noVotes' }, 0] },
+                  ],
+                },
+              ],
+            },
+          };
+          break;
+      }
+    }
+
     const [allProposal, itemCount] = await Promise.all([
       this.proposalModel
-        .find()
-        .sort({ createdAt: order === Order.ASC ? 1 : -1 })
+        .find(filter)
+        .sort({ startDate: order === Order.ASC ? 1 : -1 })
         .skip(skip)
         .limit(numOfItemsPerPage)
         .exec(),
-      this.proposalModel.countDocuments().exec(),
+      this.proposalModel.countDocuments(filter).exec(),
     ]);
 
     const proposals = allProposal.map((proposal) => toProposal(proposal));

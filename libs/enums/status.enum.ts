@@ -27,3 +27,9 @@ export enum DISBURSED_STATUS {
   PENDING = 'pending',
   DISBURSED = 'disbursed',
 }
+
+export enum PROPOSAL_STATUS {
+  IN_PROGRESS = 'IN_PROGRESS',
+  APPROVED = 'APPROVED',
+  DENIED = 'DENIED',
+}
