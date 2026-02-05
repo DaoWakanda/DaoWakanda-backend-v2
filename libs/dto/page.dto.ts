@@ -12,7 +12,11 @@ import {
 } from 'class-validator';
 import { DIFFICULTY_LEVEL } from 'libs/enums/difficulty.enum';
 import { Order } from 'libs/enums/order.enum';
-import { SUBMISSION_STATUS, TRIVIA_STATUS } from 'libs/enums/status.enum';
+import {
+  PROPOSAL_STATUS,
+  SUBMISSION_STATUS,
+  TRIVIA_STATUS,
+} from 'libs/enums/status.enum';
 
 export class BasePageOptionsDto {
   @ApiProperty({ enum: Order, default: Order.ASC })
@@ -124,4 +128,13 @@ export class SubmissionPageOptionsDto extends BasePageOptionsDto {
   @IsEnum(SUBMISSION_STATUS)
   @IsOptional()
   readonly filterBy?: SUBMISSION_STATUS;
+}
+
+export class ProposalPageOptionsDto extends BasePageOptionsDto {
+  @ApiPropertyOptional({
+    enum: PROPOSAL_STATUS,
+  })
+  @IsEnum(PROPOSAL_STATUS)
+  @IsOptional()
+  readonly status?: PROPOSAL_STATUS;
 }
