@@ -211,3 +211,22 @@ export class ProposalGroupDto {
   @ApiProperty({ type: String, isArray: true })
   appIds: string[];
 }
+
+export class ProposalStatisticsDto {
+  @ApiProperty({ description: 'Total number of proposals' })
+  totalProposals: number;
+
+  @ApiProperty({
+    description: 'Number of active proposals (end date not exceeded)',
+  })
+  activeProposals: number;
+
+  @ApiProperty({ description: 'Total number of votes across all proposals' })
+  totalVotes: number;
+
+  @ApiProperty({
+    description:
+      'Participation rate as percentage (unique voters / total users)',
+  })
+  participationRate: number;
+}

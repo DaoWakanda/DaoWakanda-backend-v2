@@ -13,6 +13,7 @@ import {
   EditProposalGroupDto,
   ProposalDto,
   ProposalGroupDto,
+  ProposalStatisticsDto,
   ValidateAddressResDto,
   VoteProposalDto,
 } from 'libs/dto';
@@ -33,6 +34,7 @@ import {
   ProposalGroupDocument,
 } from 'libs/schema/proposal-group.schema';
 import { Proposal, ProposalDocument } from 'libs/schema/proposal.schema';
+import { User, UserDocument } from 'libs/schema/user.schema';
 import { AlgorandService } from 'modules/algorand/algorand.service';
 import { Model } from 'mongoose';
 
@@ -44,6 +46,7 @@ export class ProposalService {
     private assetWhitelistModel: Model<AssetWhitelistDocument>,
     @InjectModel(ProposalGroup.name)
     private proposalGroupModel: Model<ProposalGroupDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
     private readonly algorandService: AlgorandService,
   ) {}
 
@@ -468,5 +471,50 @@ export class ProposalService {
     }
 
     return addressValidity;
+  }
+
+  async getProposalStatistics(): Promise<ProposalStatisticsDto> {
+    const currentTime = Date.now();
+
+    // Get all proposals
+    const allProposals = await this.proposalModel.find({}).lean().exec();
+
+    // Calculate total proposals
+    const totalProposals = allProposals.length;
+
+    // Calculate active proposals (endDate > currentTime)
+    const activeProposals = allProposals.filter(
+      (proposal) => proposal.endDate > currentTime,
+    ).length;
+
+    // Calculate total votes (sum of yesVotes and noVotes across all proposals)
+    const totalVotes = allProposals.reduce(
+      (sum, proposal) =>
+        sum + proposal.yesVotes.length + proposal.noVotes.length,
+      0,
+    );
+
+    // Get all unique registered voters across all proposals
+    const allRegisteredVoters = new Set<string>();
+    allProposals.forEach((proposal) => {
+      proposal.registeredVoters.forEach((voter) => {
+        allRegisteredVoters.add(voter);
+      });
+    });
+    const uniqueVotersCount = allRegisteredVoters.size;
+
+    // Get total users count
+    const totalUsers = await this.userModel.countDocuments().exec();
+
+    // Calculate participation rate
+    const participationRate =
+      totalUsers > 0 ? (uniqueVotersCount / totalUsers) * 100 : 0;
+
+    return {
+      totalProposals,
+      activeProposals,
+      totalVotes,
+      participationRate: Math.round(participationRate * 100) / 100, // Round to 2 decimal places
+    };
   }
 }
