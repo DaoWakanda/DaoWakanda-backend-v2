@@ -6,6 +6,7 @@ import {
   AssetWhiteListSchema,
   AssetWhitelist,
 } from 'libs/schema/asset-whitelist.schema';
+import { User, UserSchema } from 'libs/schema/user.schema';
 import { AlgorandService } from 'modules/algorand/algorand.service';
 import {
   ProposalGroup,
@@ -19,6 +20,7 @@ import {
       { name: Proposal.name, schema: ProposalSchema },
       { name: AssetWhitelist.name, schema: AssetWhiteListSchema },
       { name: ProposalGroup.name, schema: ProposalroupSchema },
+      { name: User.name, schema: UserSchema },
     ]),
   ],
   exports: [ProposalService],

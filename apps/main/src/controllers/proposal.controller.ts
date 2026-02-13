@@ -23,6 +23,7 @@ import {
   BootstrapProposalDto,
   CreateProposalDto,
   ProposalDto,
+  ProposalStatisticsDto,
   RemoveAssetFromWhitelistDto,
   RemoveAssetsFromWhitelistDto,
   ValidateAddressDto,
@@ -85,6 +86,13 @@ export class ProposalController {
   @Delete('asset-whitelist/many')
   removeWhitelistedAssets(@Body() dto: RemoveAssetsFromWhitelistDto) {
     return this.proposalService.batchDeleteAssetsFromWhiteList(dto.assetIds);
+  }
+
+  @ApiOperation({ summary: 'Get proposal statistics' })
+  @ApiResponse({ type: ProposalStatisticsDto })
+  @Get('statistics')
+  getProposalStatistics() {
+    return this.proposalService.getProposalStatistics();
   }
 
   @ApiOperation({ summary: 'Get all proposals' })
